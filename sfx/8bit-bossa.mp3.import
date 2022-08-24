@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/8bit-bossa.mp3-5e5805690d97bd7f714712592962302e.mp3str"
+
+[deps]
+
+source_file="res://sfx/8bit-bossa.mp3"
+dest_files=[ "res://.import/8bit-bossa.mp3-5e5805690d97bd7f714712592962302e.mp3str" ]
+
+[params]
+
+loop=true
+loop_offset=0
