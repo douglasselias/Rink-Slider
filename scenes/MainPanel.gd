@@ -6,6 +6,7 @@ onready var current_animation = $Start/Blink
 
 func _ready():
 	$Radio4.set_pressed_no_signal(true)
+	$Check4.visible = true
 	current_animation.play("Blink")
 	
 func _unhandled_input(_e):
@@ -42,8 +43,12 @@ func _unhandled_input(_e):
 	if Input.is_action_just_pressed("ui_left"):
 		$Radio2.set_pressed_no_signal(true)
 		$Radio4.set_pressed_no_signal(false)
+		$Check2.visible = true
+		$Check4.visible = false
 	if Input.is_action_just_pressed("ui_right"):
 		$Radio2.set_pressed_no_signal(false)
 		$Radio4.set_pressed_no_signal(true)
+		$Check2.visible = false
+		$Check4.visible = true
 		
 
