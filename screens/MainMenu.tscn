@@ -1,0 +1,299 @@
+[gd_scene load_steps=14 format=2]
+
+[ext_resource path="res://fonts/RussoOne-Regular.ttf" type="DynamicFontData" id=1]
+[ext_resource path="res://screens/gfx/players_2.png" type="Texture" id=2]
+[ext_resource path="res://screens/gfx/players_4.png" type="Texture" id=3]
+[ext_resource path="res://screens/code/main_menu.gd" type="Script" id=4]
+[ext_resource path="res://old/gfx/checkmark.png" type="Texture" id=5]
+[ext_resource path="res://screens/sfx/confirmation_002.ogg" type="AudioStream" id=6]
+[ext_resource path="res://screens/sfx/select_005.ogg" type="AudioStream" id=7]
+[ext_resource path="res://screens/sfx/Peachtea - Somewhere in the Elevator.ogg" type="AudioStream" id=8]
+
+[sub_resource type="DynamicFont" id=1]
+size = 50
+outline_size = 3
+outline_color = Color( 0, 0, 0, 1 )
+font_data = ExtResource( 1 )
+
+[sub_resource type="Animation" id=2]
+length = 0.001
+tracks/0/type = "bezier"
+tracks/0/path = NodePath(".:scale:x")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"points": PoolRealArray( 0.492188, -0.25, 0, 0.25, 0 ),
+"times": PoolRealArray( 0 )
+}
+tracks/1/type = "bezier"
+tracks/1/path = NodePath(".:scale:y")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"points": PoolRealArray( 0.492188, -0.25, 0, 0.25, 0 ),
+"times": PoolRealArray( 0 )
+}
+tracks/2/type = "bezier"
+tracks/2/path = NodePath(".:position:x")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"points": PoolRealArray( 90, -0.25, 0, 0.25, 0 ),
+"times": PoolRealArray( 0 )
+}
+tracks/3/type = "bezier"
+tracks/3/path = NodePath(".:position:y")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"points": PoolRealArray( 230, -0.25, 0, 0.25, 0 ),
+"times": PoolRealArray( 0 )
+}
+
+[sub_resource type="Animation" id=3]
+resource_name = "selected"
+length = 0.3
+tracks/0/type = "bezier"
+tracks/0/path = NodePath(".:scale:x")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"points": PoolRealArray( 0.492188, -0.25, 0, 0.25, 0, 0.6, -0.25, 0, 0.25, 0 ),
+"times": PoolRealArray( 0, 0.3 )
+}
+tracks/1/type = "bezier"
+tracks/1/path = NodePath(".:scale:y")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"points": PoolRealArray( 0.492188, -0.25, 0, 0.25, 0, 0.6, -0.25, 0, 0.25, 0 ),
+"times": PoolRealArray( 0, 0.3 )
+}
+tracks/2/type = "bezier"
+tracks/2/path = NodePath(".:position:x")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = false
+tracks/2/keys = {
+"points": PoolRealArray( 90, -0.25, 0, 0.25, 0, 90, -0.25, 0, 0.25, 0 ),
+"times": PoolRealArray( 0, 0.3 )
+}
+tracks/3/type = "bezier"
+tracks/3/path = NodePath(".:position:y")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"points": PoolRealArray( 230, -0.25, 0, 0.25, 0, 215, -0.25, 0, 0.25, 0 ),
+"times": PoolRealArray( 0, 0.3 )
+}
+
+[sub_resource type="Animation" id=4]
+length = 0.001
+tracks/0/type = "bezier"
+tracks/0/path = NodePath(".:scale:x")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"points": PoolRealArray( 0.492188, -0.25, 0, 0.25, 0 ),
+"times": PoolRealArray( 0 )
+}
+tracks/1/type = "bezier"
+tracks/1/path = NodePath(".:scale:y")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"points": PoolRealArray( 0.492188, -0.25, 0, 0.25, 0 ),
+"times": PoolRealArray( 0 )
+}
+tracks/2/type = "bezier"
+tracks/2/path = NodePath(".:position:x")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = false
+tracks/2/keys = {
+"points": PoolRealArray( 90, -0.25, 0, 0.25, 0 ),
+"times": PoolRealArray( 0 )
+}
+tracks/3/type = "bezier"
+tracks/3/path = NodePath(".:position:y")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"points": PoolRealArray( 230, -0.25, 0, 0.25, 0 ),
+"times": PoolRealArray( 0 )
+}
+
+[sub_resource type="Animation" id=5]
+resource_name = "selected"
+length = 0.3
+tracks/0/type = "bezier"
+tracks/0/path = NodePath(".:scale:x")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"points": PoolRealArray( 0.492188, -0.25, 0, 0.25, 0, 0.6, -0.25, 0, 0.25, 0 ),
+"times": PoolRealArray( 0, 0.3 )
+}
+tracks/1/type = "bezier"
+tracks/1/path = NodePath(".:scale:y")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"points": PoolRealArray( 0.492188, -0.25, 0, 0.25, 0, 0.6, -0.25, 0, 0.25, 0 ),
+"times": PoolRealArray( 0, 0.3 )
+}
+tracks/2/type = "bezier"
+tracks/2/path = NodePath(".:position:x")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = false
+tracks/2/keys = {
+"points": PoolRealArray( 90, -0.25, 0, 0.25, 0, 90, -0.25, 0, 0.25, 0 ),
+"times": PoolRealArray( 0, 0.3 )
+}
+tracks/3/type = "bezier"
+tracks/3/path = NodePath(".:position:y")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"points": PoolRealArray( 230, -0.25, 0, 0.25, 0, 215, -0.25, 0, 0.25, 0 ),
+"times": PoolRealArray( 0, 0.3 )
+}
+
+[node name="MainMenu" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 4 )
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+anchor_right = 1.0
+margin_bottom = 119.0
+
+[node name="Title" type="Label" parent="CenterContainer"]
+margin_left = 32.0
+margin_top = 29.0
+margin_right = 313.0
+margin_bottom = 90.0
+custom_fonts/font = SubResource( 1 )
+text = "Rink Slider"
+
+[node name="Players2" type="Sprite" parent="."]
+position = Vector2( 90, 230 )
+scale = Vector2( 0.492188, 0.492188 )
+texture = ExtResource( 2 )
+
+[node name="Sprite" type="Sprite" parent="Players2"]
+visible = false
+modulate = Color( 0.0901961, 0.698039, 0.215686, 0 )
+position = Vector2( 79.2381, -85.3333 )
+scale = Vector2( 2, 2 )
+texture = ExtResource( 5 )
+
+[node name="AnimPlayer" type="AnimationPlayer" parent="Players2"]
+anims/RESET = SubResource( 2 )
+anims/selected = SubResource( 3 )
+
+[node name="Players4" type="Sprite" parent="."]
+position = Vector2( 254, 230 )
+scale = Vector2( 0.492188, 0.492188 )
+texture = ExtResource( 3 )
+
+[node name="AnimPlayer" type="AnimationPlayer" parent="Players4"]
+anims/RESET = SubResource( 4 )
+anims/selected = SubResource( 5 )
+
+[node name="VBoxContainer" type="HBoxContainer" parent="."]
+visible = false
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -216.0
+margin_top = -200.0
+margin_right = -22.0
+margin_bottom = 62.0
+grow_horizontal = 2
+grow_vertical = 2
+rect_min_size = Vector2( 346, 173 )
+
+[node name="TextureButton" type="TextureButton" parent="VBoxContainer"]
+visible = false
+margin_right = 256.0
+margin_bottom = 256.0
+grow_vertical = 2
+texture_normal = ExtResource( 2 )
+
+[node name="TextureButton2" type="TextureButton" parent="VBoxContainer"]
+visible = false
+margin_right = 256.0
+margin_bottom = 256.0
+texture_normal = ExtResource( 2 )
+
+[node name="Button" type="Button" parent="VBoxContainer"]
+visible = false
+margin_right = 268.0
+margin_bottom = 262.0
+grow_horizontal = 2
+grow_vertical = 2
+rect_scale = Vector2( 0.5, 0.5 )
+icon = ExtResource( 2 )
+flat = true
+icon_align = 1
+
+[node name="Button2" type="Button" parent="VBoxContainer"]
+visible = false
+margin_right = 268.0
+margin_bottom = 262.0
+grow_horizontal = 2
+grow_vertical = 2
+icon = ExtResource( 3 )
+flat = true
+icon_align = 1
+
+[node name="CenterContainer2" type="CenterContainer" parent="."]
+visible = false
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = -173.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 2
+size_flags_vertical = 2
+
+[node name="Select" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 6 )
+
+[node name="ChangeSelection" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 7 )
+
+[node name="BGM" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 8 )
