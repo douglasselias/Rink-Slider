@@ -5,6 +5,7 @@ onready var game = preload("res://screens/game/Game.tscn").instance()
 onready var canvas = $CanvasLayer
 onready var animation_transition = $CanvasLayer/ColorRect/AnimationPlayer
 
+
 func _ready():
 	OS.set_window_title("Rink Slider")
 	OS.window_maximized = true
@@ -22,4 +23,3 @@ func _unhandled_input(event: InputEvent):
 		add_child(game)
 		animation_transition.play("transition")
 		yield(get_tree().create_timer(1.5), "timeout")
-		pass

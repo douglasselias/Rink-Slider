@@ -79,7 +79,18 @@ var is_moving_right = false
 var is_moving_left = false
 var is_moving_up = false
 var is_moving_down = false
+
+var is_platform_moving_right = false
+var is_platform_moving_left = false
+var is_platform_moving_up = false
+var is_platform_moving_down = false
 #var is_player_moving = false
+var destination = Vector2.ZERO
+var curr_plat_idx = -1
+var base_direction = Vector2.ZERO
+var direction = Vector2.ZERO
+var inverse_direction = Vector2.ZERO
+
 
 func _unhandled_input(event: InputEvent):
 	var player_board_position = players_initial_positions[current_player]
@@ -88,41 +99,73 @@ func _unhandled_input(event: InputEvent):
 	var up_direction = player_board_position + Vector2.UP
 	var down_direction = player_board_position + Vector2.DOWN
 	
-	if !is_moving_right and event.is_action_pressed("ui_right") and has_platform(right_direction) and not has_platform_selected:
+	var pressed_right = event.is_action_pressed("ui_right")
+	var pressed_left = event.is_action_pressed("ui_left")
+	var pressed_up = event.is_action_pressed("ui_up")
+	var pressed_down = event.is_action_pressed("ui_down")
+	var pressed_select = event.is_action_pressed("ui_select")
+	
+	if !is_moving_right and pressed_right and has_platform(right_direction) and not has_platform_selected:
 		is_moving_right = true
 		return
-	if !is_moving_left and event.is_action_pressed("ui_left") and has_platform(left_direction) and not has_platform_selected:
+	if !is_moving_left and pressed_left and has_platform(left_direction) and not has_platform_selected:
 		is_moving_left = true
 		return
-	if !is_moving_up and event.is_action_pressed("ui_up") and has_platform(up_direction) and not has_platform_selected:
+	if !is_moving_up and pressed_up and has_platform(up_direction) and not has_platform_selected:
 		is_moving_up = true
 		return
-	if !is_moving_down and event.is_action_pressed("ui_down") and has_platform(down_direction) and not has_platform_selected:
+	if !is_moving_down and pressed_down and has_platform(down_direction) and not has_platform_selected:
 		is_moving_down = true
 		return
 		
 	
-	if event.is_action_pressed("ui_select") and not has_platform_selected:
+	if pressed_select and not has_platform_selected:
 		has_platform_selected = true
 		var index = platforms_initial_positions.find(players_initial_positions[current_player])
 		platforms_instances[index].get_node("Crosshair").visible = true
 		return
-	if event.is_action_pressed("ui_select") and has_platform_selected:
+	if pressed_select and has_platform_selected:
 		has_platform_selected = false
 		var index = platforms_initial_positions.find(players_initial_positions[current_player])
 		platforms_instances[index].get_node("Crosshair").visible = false
 		return
 	
-	if event.is_action_pressed("ui_right") and has_platform_selected and not is_moving:
+
+	if !is_platform_moving_right and pressed_right and has_platform_selected and not is_moving:
 		is_moving = true
-		var next_square = right_direction + Vector2.RIGHT
-		while not has_platform(next_square) or is_out_of_bounds(next_square):
-			next_square + Vector2.RIGHT
-			pass
-			
-		var destination = next_square + Vector2.LEFT
-#		for i in range(platforms_initial_positions.size()):
-#			pass
+		is_platform_moving_right = true
+		direction = Vector2.RIGHT
+		inverse_direction = Vector2.LEFT
+		base_direction = right_direction
+		move()
+		return
+
+	if !is_platform_moving_left and pressed_left and has_platform_selected and not is_moving:
+		is_moving = true
+		is_platform_moving_left = true
+		direction = Vector2.LEFT
+		inverse_direction = Vector2.RIGHT
+		base_direction = left_direction
+		move()
+		return
+	
+	if !is_platform_moving_up and pressed_up and has_platform_selected and not is_moving:
+		is_moving = true
+		is_platform_moving_up = true
+		direction = Vector2.UP
+		inverse_direction = Vector2.DOWN
+		base_direction = up_direction
+		move()
+		return
+	if !is_platform_moving_down and pressed_down and has_platform_selected and not is_moving:
+		is_moving = true
+		is_platform_moving_down = true
+		direction = Vector2.DOWN
+		inverse_direction = Vector2.UP
+		base_direction = down_direction
+		move()
+		return
+
 
 func _process(delta: float):
 	var player_board_position = players_initial_positions[current_player]
@@ -152,6 +195,30 @@ func _process(delta: float):
 			is_moving_down = false
 			players_initial_positions[current_player] = direction
 			player_instances[current_player].position = screen_position
+	
+	if is_platform_moving_right or is_platform_moving_left or is_platform_moving_up or is_platform_moving_down:
+		var screen_position = get_screen_player_position(destination)
+		player_instances[current_player].position = lerp(player_instances[current_player].position, screen_position, 0.3)
+		var curr_pos = player_instances[current_player].position
+		
+		var screen_position_plat = new_platform_position(destination)
+		platforms_instances[curr_plat_idx].position = lerp(platforms_instances[curr_plat_idx].position, screen_position_plat, 0.3)
+		var curr_plat_pos = platforms_instances[curr_plat_idx].position
+		
+		if is_equal_approx(curr_pos.x, screen_position.x) and is_equal_approx(curr_pos.y, screen_position.y) and is_equal_approx(curr_plat_pos.x, screen_position_plat.x) and is_equal_approx(curr_plat_pos.x, screen_position_plat.x):
+			is_platform_moving_left = false
+			is_platform_moving_right = false
+			is_platform_moving_up = false
+			is_platform_moving_down = false
+			is_moving = false
+			
+			player_instances[current_player].position = screen_position
+			platforms_instances[curr_plat_idx].position = screen_position_plat
+			
+			current_player = (current_player + 1) % total_players
+			player_instances[current_player].get_node("Crosshair").visible = true
+			has_platform_selected = false
+		
 
 
 func has_platform(v: Vector2) -> bool:
@@ -165,3 +232,20 @@ func get_screen_player_position(v: Vector2) -> Vector2:
 var board_range = range(0, 7)
 func is_out_of_bounds(v: Vector2) -> bool:
 	return not (v.x in board_range) or not (v.y in board_range)
+
+
+func new_platform_position(v: Vector2) -> Vector2:
+	return v * platform_size + Vector2(player_offset_board, player_offset_board)
+
+
+func move():
+	var next_square = base_direction + direction
+	while not has_platform(next_square) or is_out_of_bounds(next_square):
+		next_square += direction
+			
+	destination = next_square + inverse_direction
+	players_initial_positions[current_player] = destination
+	curr_plat_idx = platforms_initial_positions.find(base_direction + inverse_direction)
+	platforms_initial_positions[curr_plat_idx] = destination
+	platforms_instances[curr_plat_idx].get_node("Crosshair").visible = false
+	player_instances[current_player].get_node("Crosshair").visible = false
