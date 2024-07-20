@@ -1,15 +1,16 @@
 Font font;
-int font_size = 70;
-int font_spacing = 0;
+s32 font_size = 70;
+s32 font_spacing = 0;
 
 void init_font() {
-  int codepoint_count = 0;
-  int *codepoints = LoadCodepoints("1234567890(),", &codepoint_count);
+  s32 codepoint_count = 0;
+  s32 *codepoints = LoadCodepoints("1234567890(),qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM", &codepoint_count);
   font = LoadFontEx("fonts/RussoOne-Regular.ttf", font_size, codepoints, codepoint_count);
   /// @todo: not really necessary
   UnloadCodepoints(codepoints);
 }
 
+/// @todo: maybe add a string struct? or maybe find a way to not need the const keyword
 Vector2 measure_text(const char* text) {
   return MeasureTextEx(font, text, font_size, font_spacing);
 }

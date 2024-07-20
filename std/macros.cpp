@@ -1,3 +1,7 @@
+#pragma once
+
+/// @todo: is these really necessary?
+
 #define declare_array(type, name, size) \
   u64 name##_size = size; \
   type name[size] = {}
