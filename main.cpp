@@ -11,7 +11,6 @@
 
 #include "src/screen.cpp"
 #include "src/font.cpp"
-// #include "src/editor.cpp"
 
 void draw_texture(Texture2D texture, Vector2 position, f32 scale = 1) {
   Rectangle source = {0, 0, (f32)texture.width, (f32)texture.height};
@@ -22,31 +21,16 @@ void draw_texture(Texture2D texture, Vector2 position, f32 scale = 1) {
   DrawTexturePro(texture, source, dest, origin, rotation, tint);
 }
 
-Vector2 convert_screen_position_to_board_position_player(Vector2 board_top_left, Vector2 player_offset, u8 move_distance, Vector2 position) {
-  // log("Top          ", board_top_left);
-  // log("Player offset", player_offset);
-  // log("Move dist    ", move_distance);
-  // log("Position     ", position);
-  // log("Result       ", position - board_top_left - player_offset);
-  /// @note: I don't know why the y value returns the desired value plus one, so I subtract the y value by one
-  /// @note: Now it's suddenly working?!
-  return ((position - board_top_left - player_offset) / (Vector2){(f32)move_distance, (f32)move_distance}) - (Vector2){0, 0};
-}
-
 Vector2 convert_board_position_to_screen_position_player(Vector2 board_top_left, Vector2 player_offset, u8 move_distance, Vector2 position) {
   return board_top_left + player_offset + position * (Vector2){(f32)move_distance, (f32)move_distance};
 }
 
-/// -----------
-
-Vector2 convert_screen_position_to_board_position(Vector2 board_top_left, u8 move_distance, Vector2 position) {
-  /// @todo: test this function with platform
-  /// @todo: remove this function
-  return (position - board_top_left) / (Vector2){(f32)move_distance, (f32)move_distance};
-}
-
 Vector2 convert_board_position_to_screen_position(Vector2 board_top_left, u8 move_distance, Vector2 position) {
   return board_top_left + position * (Vector2){(f32)move_distance, (f32)move_distance};
+}
+
+f32 ease_in_out_quart(f32 x) {
+  return x < 0.5 ? 8 * pow(x, 4) : 1 - pow(-2 * x + 2, 4) / 2;
 }
 
 s32 main() {
@@ -59,8 +43,8 @@ s32 main() {
     screen_center.y - board_texture.height,
   };
   u8 board_texture_scale = 2;
-  Vector2 board_border_thickness = {5,5};
-  Vector2 board_top_left = board_position + board_border_thickness * (Vector2){(f32)board_texture_scale, (f32)board_texture_scale};
+  u8 board_border_thickness = 5;
+  Vector2 board_top_left = board_position + board_border_thickness * board_texture_scale;
 
   Texture2D platform_texture = LoadTexture("gfx/platform.png");
   u8 move_distance = platform_texture.width  * board_texture_scale;
@@ -87,78 +71,86 @@ s32 main() {
 
   Texture2D platform_frame_texture = LoadTexture("gfx/platform_frame.png");
 
-  struct BoardSquare {
-    bool has_platform;
-    bool has_player;
-  };
-
-  // BoardSquare board[7][7] = {};
   bool board[7][7] = {};
-  for(Vector2 platform_position : platform_positions) {
+  for(auto platform_position : platform_positions) {
     board[(u8)platform_position.x][(u8)platform_position.y] = true;
   }
 
-  Texture2D player_texture = LoadTexture("gfx/player_purple.png");
-  Vector2 player_offset = (Vector2){(f32)player_texture.width / 4, 0};
-  Vector2 player_position = board_top_left + player_offset;
-  Vector2 player_position_board = {};
+  Texture2D player_textures[4] = {};
+  const char* player_colors[4] = {"orange", "green", "blue", "purple"};
+  u8 player_color_index = 0;
+  for(auto &player_texture : player_textures) {
+    player_texture = LoadTexture(TextFormat("gfx/player_%s.png", player_colors[player_color_index++]));
+  }
 
-  bool is_debug = true;
+  Vector2 player_offset = {(f32)player_textures[0].width / 4, 0};
+
+  Vector2 player_positions[4] = {
+    /// @note: Top left
+    {0,0},
+    /// @note: Top right
+    {6,0},
+    /// @note: Bottom left
+    {0,6},
+    /// @note: Bottom right
+    {6,6},
+  };
+  u8 selected_player = 0;
 
   Vector2 platform_final_position = {};
-  Vector2 player_final_position = {};
+
+  f32 animation_current_time = 0;
+  f32 animation_duration = 1;
 
   while (!WindowShouldClose()) {
-    // f32 dt = GetFrameTime();
-    // Vector2 world_mouse_position = GetMousePosition();
-
-    // if(IsKeyPressed(KEY_W)) platform_position.y -= move_distance;
-    // if(IsKeyPressed(KEY_S)) platform_position.y += move_distance;
-    // if(IsKeyPressed(KEY_A)) platform_position.x -= move_distance;
-    // if(IsKeyPressed(KEY_D)) platform_position.x += move_distance;
+    f32 dt = GetFrameTime();
 
     if(IsKeyPressed(KEY_W)) {
+      s8 y = player_positions[selected_player].y - 1;
       if(selected_platform == -1) {
-        // Vector2 player_board_position = convert_screen_position_to_board_position_player(board_top_left, player_offset, move_distance, player_position);
-        s8 y = player_position_board.y - 1;
-        if(y >= 0 && board[(u8)player_position_board.x][y])
-          player_position_board.y -= 1;
+        if(0 <= y && board[(u8)player_positions[selected_player].x][y])
+          player_positions[selected_player].y--;
+      } else {
+        while(0 <= y && (board[(u8)player_positions[selected_player].x][y] == false)) {
+          y--;
+        }
+        platform_final_position.y = y + 1;
       }
     }
     if(IsKeyPressed(KEY_S)) {
+      s8 y = player_positions[selected_player].y + 1;
       if(selected_platform == -1) {
-        // Vector2 player_board_position = convert_screen_position_to_board_position_player(board_top_left, player_offset, move_distance, player_position);
-        s8 y = player_position_board.y + 1;
-        if(y < 7 && board[(u8)player_position_board.x][y])
-          player_position_board.y += 1;
+        if(y < 7 && board[(u8)player_positions[selected_player].x][y])
+          player_positions[selected_player].y++;
+      } else {
+        while(y < 7 && board[(u8)player_positions[selected_player].x][y] == false) {
+          y++;
+        }
+        platform_final_position.y = y - 1;
       }
     }
     if(IsKeyPressed(KEY_A)) {
+      s8 x = player_positions[selected_player].x - 1;
       if(selected_platform == -1) {
-        // Vector2 player_board_position = convert_screen_position_to_board_position_player(board_top_left, player_offset, move_distance, player_position);
-        s8 x = player_position_board.x - 1;
-        if(x >= 0 && board[x][(u8)player_position_board.y])
-          player_position_board.x -= 1;
+        if(0 <= x && board[x][(u8)player_positions[selected_player].y])
+          player_positions[selected_player].x--;
+      } else {
+        while(0 <= x && (board[x][(u8)player_positions[selected_player].y] == false)) {
+          x--;
+        }
+        platform_final_position.x = x + 1;
       }
     }
     if(IsKeyPressed(KEY_D)) {
+      s8 x = player_positions[selected_player].x + 1;
       if(selected_platform == -1) {
-        // Vector2 player_board_position = convert_screen_position_to_board_position_player(board_top_left, player_offset, move_distance, player_position);
-        s8 x = player_position_board.x + 1;
-        if(x < 7 && board[x][(u8)player_position_board.y])
-          player_position_board.x += 1;
-      } else if(selected_platform != -1) {
-        Vector2 platform_position = platform_positions[selected_platform];
-        // Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, move_distance, platform_position);
-        s8 x = player_position_board.x + 1;
-        while(x < 7 && board[x][(u8)player_position_board.y] == false) {
-          // platform_final_position.x += move_distance;
+        if(x < 7 && board[x][(u8)player_positions[selected_player].y])
+          player_positions[selected_player].x++;
+      } else {
+        while(x < 7 && (board[x][(u8)player_positions[selected_player].y] == false)) {
           x++;
         }
-        // platform_positions[selected_platform].x = x - 1;
         platform_final_position.x = x - 1;
-        player_final_position.x   = x - 1;
-        log("PP", platform_final_position);
       }
     }
 
@@ -166,11 +158,10 @@ s32 main() {
       if(selected_platform != -1) {
         selected_platform = -1;
       } else {
-        // Vector2 player_board_position = convert_screen_position_to_board_position_player(board_top_left, player_offset, move_distance, player_position);
         u8 index = 0;
-        for(Vector2 platform_position : platform_positions) {
-          if((u8)player_position_board.x == (u8)platform_position.x
-          && (u8)player_position_board.y == (u8)platform_position.y) {
+        for(auto platform_position : platform_positions) {
+          if((u8)player_positions[selected_player].x == (u8)platform_position.x
+          && (u8)player_positions[selected_player].y == (u8)platform_position.y) {
             selected_platform = index;
             break;
           }
@@ -179,17 +170,54 @@ s32 main() {
       }
     }
 
-    if(selected_platform != -1 && !FloatEquals(platform_final_position.x, 0)) {
-      platform_positions[selected_platform].x = Lerp(platform_positions[selected_platform].x, platform_final_position.x, 0.1);
-      if(FloatEquals(platform_positions[selected_platform].x, platform_final_position.x)) {
-        selected_platform = -1;
-        platform_final_position = {};
+    if(selected_platform != -1) {
+      /// @todo: this is shared between players, need to separate!!!
+      f32 animation_dt = ease_in_out_quart(animation_current_time / animation_duration);
+
+      if(!FloatEquals(platform_final_position.x, 0)) {
+        /// @todo: maybe some floating point rounding error?
+        player_positions[selected_player].x = Lerp(player_positions[selected_player].x, platform_final_position.x, animation_dt);
+        if(FloatEquals(player_positions[selected_player].x, platform_final_position.x)) {
+          selected_player = (selected_player + 1) % 4;
+        }
+
+        platform_positions[selected_platform].x = Lerp(platform_positions[selected_platform].x, platform_final_position.x, animation_dt);
+        if(FloatEquals(platform_positions[selected_platform].x, platform_final_position.x)) {
+          selected_platform = -1;
+          platform_final_position *= 0;
+          for(auto &row : board)
+            for(auto &column : row)
+              column = false;
+
+          for(auto platform_position : platform_positions) {
+            board[(u8)platform_position.x][(u8)platform_position.y] = true;
+          }
+        }
       }
 
-      player_position.x = Lerp(player_position.x, player_final_position.x, 0.1);
-      if(FloatEquals(player_position.x, player_final_position.x)) {
-        player_final_position = {};
+      if(!FloatEquals(platform_final_position.y, 0)) {
+        player_positions[selected_player].y = Lerp(player_positions[selected_player].y, platform_final_position.y, animation_dt);
+        if(FloatEquals(player_positions[selected_player].y, platform_final_position.y)) {
+          selected_player = (selected_player + 1) % 4;
+        }
+
+        platform_positions[selected_platform].y = Lerp(platform_positions[selected_platform].y, platform_final_position.y, animation_dt);
+        if(FloatEquals(platform_positions[selected_platform].y, platform_final_position.y)) {
+          selected_platform = -1;
+          platform_final_position *= 0;
+          for(auto &row : board)
+            for(auto &column : row)
+              column = false;
+
+          for(auto platform_position : platform_positions) {
+            board[(u8)platform_position.x][(u8)platform_position.y] = true;
+          }
+        }
       }
+
+      animation_current_time += dt;
+    } else {
+      animation_current_time = 0;
     }
 
     BeginDrawing();
@@ -197,24 +225,23 @@ s32 main() {
     
     draw_texture(board_texture, board_position, board_texture_scale);
 
-    for(Vector2 platform_position : platform_positions) {
+    for(auto platform_position : platform_positions) {
       Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, move_distance, platform_position);
       draw_texture(platform_texture, screen_position, board_texture_scale);
     }
 
     if(selected_platform != -1) {
       Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, move_distance, platform_positions[selected_platform]);
-      draw_texture(platform_frame_texture, screen_position, 1.5);
+      f32 platform_frame_texture_scale = 1.5;
+      draw_texture(platform_frame_texture, screen_position, platform_frame_texture_scale);
     }
 
-    Vector2 player_position_screen = convert_board_position_to_screen_position_player(board_top_left, player_offset, move_distance, player_position_board);
-    draw_texture(player_texture, player_position_screen);
-    // draw_texture(player_texture, player_position);
-    // DrawRectangleLinesEx((Rectangle){player_position.x, player_position.y, (f32)player_texture.width, (f32)player_texture.height}, 2, RED);
-
-    if(is_debug) {
-      // draw_text(TextFormat("(%.f, %.f)", world_mouse_position.x, world_mouse_position.y), (Vector2){world_mouse_position.x + 20, world_mouse_position.y});
+    u8 player_index = 0;
+    for(auto player_position : player_positions) {
+      Vector2 player_position_screen = convert_board_position_to_screen_position_player(board_top_left, player_offset, move_distance, player_position);
+      draw_texture(player_textures[player_index++], player_position_screen);
     }
+
     EndDrawing();
   }
 
