@@ -1,5 +1,8 @@
-/// @todo: is pragma once really needed? I include all in the main file anyway...
 #pragma once
+
+void log(const char* text) {
+  TraceLog(LOG_WARNING, text);
+}
 
 void log(const char* name, Vector2 vector) {
   TraceLog(LOG_WARNING, TextFormat("%s: (%.3f, %.3f)", name, vector.x, vector.y));

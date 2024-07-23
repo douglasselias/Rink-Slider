@@ -1,10 +1,5 @@
 #pragma once
 
-/// @todo: static reduce linker time
-/// @todo: assert only on debug code, flag on compiler?
-/// @todo: is all these functions correct?
-/// @todo: add inline?
-
 #define vector_op_value(type, op) \
 Vector2 operator op(const Vector2 lhs, const type value) { \
   return {lhs.x op value, lhs.y op value}; \
