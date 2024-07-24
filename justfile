@@ -1,8 +1,7 @@
-flags := "-std=c++11 -Wall -Wshadow -fno-exceptions -fno-rtti -fstack-protector-all -fsanitize=address,undefined -fsanitize-trap=all -O0 -g3 -o"
-optional_flags := "-Wextra -Wconversion -Wdouble-promotion -Oi"
+flags := "-std=c++11 -Wall -Wextra -Wconversion -Wdouble-promotion -Wformat=2 -Wpadded -Wshadow -fno-exceptions -fno-rtti -fstrict-aliasing -Wstrict-aliasing=2 -fstack-protector-all -fsanitize=address,undefined -fsanitize-trap=all -O0 -g3 -o"
 
-prod_flags := "-march=native -ffast-math | -static | -fprofile-generate -fprofile-use | -fopt-info-vec-optimized"
-# [-Wliteral-conversion]
+prod_flags := "-march=native -ffast-math -static -fno-exceptions -fno-rtti"
+perf_debug := "-fopt-info-vec-optimized -fprofile-generate | -fprofile-use"
 
 windows_flags := "-std=c++11 -Wall -Wshadow -fno-exceptions -fno-rtti -O0 -g3 -o"
 
