@@ -1,6 +1,6 @@
 Font font;
 s32 font_size = 70;
-s32 font_spacing = 0;
+f32 font_spacing = 0;
 
 void init_font() {
   s32 codepoint_count = 0;
@@ -12,11 +12,11 @@ void init_font() {
 
 /// @todo: maybe add a string struct? or maybe find a way to not need the const keyword
 Vector2 measure_text(const char* text) {
-  return MeasureTextEx(font, text, font_size, font_spacing);
+  return MeasureTextEx(font, text, (f32)font_size, font_spacing);
 }
 
 void draw_text(const char* text, Vector2 position) {
-  DrawTextEx(font, text, position, font_size, font_spacing, WHITE);
+  DrawTextEx(font, text, position, (f32)font_size, font_spacing, WHITE);
 }
 
 /// @todo: not really necessary

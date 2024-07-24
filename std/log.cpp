@@ -5,12 +5,12 @@ void log(const char* text) {
 }
 
 void log(const char* name, Vector2 vector) {
-  TraceLog(LOG_WARNING, TextFormat("%s: (%.3f, %.3f)", name, vector.x, vector.y));
+  TraceLog(LOG_WARNING, TextFormat("%s: (%.3f, %.3f)", name, (f64)vector.x, (f64)vector.y));
 }
 
 #define declare_float_log(type) \
 void log(const char* name, type value) { \
-  TraceLog(LOG_WARNING, TextFormat("%s: %.3f", name, value)); \
+  TraceLog(LOG_WARNING, TextFormat("%s: %.3f", name, (f64)value)); \
 }
 
 declare_float_log(f32)

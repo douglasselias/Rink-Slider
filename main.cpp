@@ -28,7 +28,7 @@ Vector2 convert_board_position_to_screen_position(Vector2 offset, Vector2 positi
 }
 
 f32 ease_in_out_quart(f32 x) {
-  return x < 0.5 ? 8 * pow(x, 4) : 1 - pow(-2 * x + 2, 4) / 2;
+  return x < 0.5f ? 8 * (f32)pow(x, 4) : 1 - (f32)pow(-2 * x + 2, 4) / 2;
 }
 
 s32 main() {
@@ -45,7 +45,7 @@ s32 main() {
   Vector2 board_top_left = board_position + board_border_thickness * board_texture_scale;
 
   Texture2D platform_texture = LoadTexture("gfx/platform.png");
-  u8 move_distance = platform_texture.width  * board_texture_scale;
+  u8 move_distance = (u8)platform_texture.width * board_texture_scale;
 
   Vector2 platform_positions[12] = {
     /// @note: Top left
@@ -102,14 +102,17 @@ s32 main() {
 
   while (!WindowShouldClose()) {
     f32 dt = GetFrameTime();
-    log("Final", platform_final_position.x);
+    // log("Final", platform_final_position.x);
 
     if(IsKeyPressed(KEY_W)
     && FloatEquals(platform_final_position.x, -1)
     && FloatEquals(platform_final_position.y, -1)) {
-      log("Y", player_positions[selected_player].y);
-      assert((player_positions[selected_player].y - 1 >= 0) && "Y is less than zero");
-      s8 y = player_positions[selected_player].y - 1;
+      log("Player #", selected_player);
+      assert(selected_player < number_of_players);
+      Vector2 v = player_positions[selected_player];
+      log("Y", v.y);
+      // assert(player_positions[selected_player].y - 1 >= 0);
+      s8 y = ((s8)player_positions[selected_player].y) - 1;
       if(selected_platform == -1) {
         if(0 <= y && board[(u8)player_positions[selected_player].x][y]) {
           player_positions[selected_player].y--;
@@ -128,7 +131,7 @@ s32 main() {
     if(IsKeyPressed(KEY_S)
     && FloatEquals(platform_final_position.x, -1)
     && FloatEquals(platform_final_position.y, -1)) {
-      s8 y = player_positions[selected_player].y + 1;
+      s8 y = ((s8)player_positions[selected_player].y) + 1;
       if(selected_platform == -1) {
         if(y < 7 && board[(u8)player_positions[selected_player].x][y]) {
           player_positions[selected_player].y++;
@@ -150,7 +153,7 @@ s32 main() {
     if(IsKeyPressed(KEY_A)
     && FloatEquals(platform_final_position.x, -1)
     && FloatEquals(platform_final_position.y, -1)) {
-      s8 x = player_positions[selected_player].x - 1;
+      s8 x = ((s8)player_positions[selected_player].x) - 1;
       if(selected_platform == -1) {
         if(0 <= x && board[x][(u8)player_positions[selected_player].y]) {
           player_positions[selected_player].x--;
@@ -172,7 +175,7 @@ s32 main() {
     if(IsKeyPressed(KEY_D)
     && FloatEquals(platform_final_position.x, -1)
     && FloatEquals(platform_final_position.y, -1)) {
-      s8 x = player_positions[selected_player].x + 1;
+      s8 x = ((s8)player_positions[selected_player].x) + 1;
       if(selected_platform == -1) {
         if(x < 7 && board[x][(u8)player_positions[selected_player].y]) {
           player_positions[selected_player].x++;
@@ -197,7 +200,7 @@ s32 main() {
       if(selected_platform != -1) {
         selected_platform = -1;
       } else {
-        u8 index = 0;
+        s8 index = 0;
         for(auto platform_position : platform_positions) {
           if((u8)player_positions[selected_player].x == (u8)platform_position.x
           && (u8)player_positions[selected_player].y == (u8)platform_position.y) {
@@ -246,7 +249,7 @@ s32 main() {
         platform_positions[selected_platform].y = y;
 
         if(FloatEquals(player_positions[selected_player].y, platform_final_position.y)) {
-          selected_player = (selected_player + 1) % 4;
+          selected_player = (selected_player + 1) % number_of_players;
           selected_platform = -1;
           platform_final_position *= 0;
           platform_final_position += -1;
