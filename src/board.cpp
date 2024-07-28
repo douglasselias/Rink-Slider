@@ -1,4 +1,7 @@
-bool board[7][7] = {};
+u8 PLAYER   = 1;
+u8 PLATFORM = 2;
+
+u8 board[7][7] = {};
 // {//0,1,2,3,4,5,6
 //   {x,x,x,x,x,x,x}, // 0
 //   {x,x,x,x,x,x,x}, // 1
@@ -13,13 +16,31 @@ bool board[7][7] = {};
 void clear_board_positions() {
   for(u8 row = 0; row < 7; row++)
     for(u8 column = 0; column < 7; column++)
-    board[row][column] = false;
+    board[row][column] = 0;
 }
 
 void update_board_positions(Vector2 platform_positions[12]) {
   for(u8 i = 0; i < 12; i++) {
-    Vector2 platform_position = platform_positions[i];
-    board[(u8)platform_position.y][(u8)platform_position.x] = true;
+    Vector2 p = platform_positions[i];
+    board[cast_u8(p.y)][cast_u8(p.x)] |= PLATFORM;
+  }
+
+  // for(u8 i = 0; i < 2; i++) {
+  //   Vector2 p = player_positions[i];
+  //   board[cast_u8(p.y)][cast_u8(p.x)] |= PLAYER;
+  //   // log("board", board[(u8)p.y][(u8)p.x]);
+  //   // log("has player", board[(u8)p.y][(u8)p.x] & PLAYER);
+  // }
+}
+
+void update_board_players(Vector2 player_positions[2]) {
+  for(u8 row = 0; row < 7; row++)
+    for(u8 column = 0; column < 7; column++)
+    board[row][column] &= ~PLAYER;
+
+  for(u8 i = 0; i < 2; i++) {
+    Vector2 p = player_positions[i];
+    board[cast_u8(p.y)][cast_u8(p.x)] |= PLAYER;
   }
 }
 
