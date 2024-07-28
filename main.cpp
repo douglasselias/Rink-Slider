@@ -23,10 +23,6 @@ void draw_texture(Texture2D texture, Vector2 position, f32 scale = 1) {
   DrawTexturePro(texture, source, dest, origin, rotation, tint);
 }
 
-Vector2 convert_board_position_to_screen_position(Vector2 offset, Vector2 position, u8 move_distance) {
-  return offset + position * move_distance;
-}
-
 f32 ease_in_out_quart(f32 x) {
   return x < 0.5f ? 8 * (f32)pow(x, 4) : 1 - (f32)pow(-2 * x + 2, 4) / 2;
 }
@@ -45,13 +41,15 @@ s32 main() {
   Vector2 board_top_left = board_position + board_border_thickness * board_texture_scale;
 
   Texture2D platform_texture = LoadTexture("gfx/platform.png");
-  u8 move_distance = (u8)platform_texture.width * board_texture_scale;
+  u8 move_distance = cast_u8(platform_texture.width) * board_texture_scale;
 
   Vector2 platform_positions[12] = {
     /// @note: Top left
     {0,0},
-    {1,0},
+    // {1,0},
     {0,1},
+
+    {1,1},
     /// @note: Top right
     {6,0},
     {5,0},
@@ -68,10 +66,7 @@ s32 main() {
   s8 selected_platform = -1;
 
   Texture2D platform_frame_texture = LoadTexture("gfx/platform_frame.png");
-
-  for(auto platform_position : platform_positions) {
-    board[(u8)platform_position.x][(u8)platform_position.y] = true;
-  }
+  update_board_positions(platform_positions);
 
   Texture2D player_textures[4] = {};
   const char* player_colors[4] = {"orange", "green", "blue", "purple"};
@@ -82,12 +77,12 @@ s32 main() {
 
   Vector2 player_offset = {(f32)player_textures[0].width / 4, 0};
 
-  #define number_of_players 2
+  #define number_of_players 1
   Vector2 player_positions[number_of_players] = {
     /// @note: Top left
     {0,0},
     /// @note: Top right
-    {6,0},
+    // {6,0},
     /// @note: Bottom left
     // {0,6},
     /// @note: Bottom right
@@ -102,28 +97,21 @@ s32 main() {
 
   while (!WindowShouldClose()) {
     f32 dt = GetFrameTime();
-    // log("Final", platform_final_position.x);
 
     if(IsKeyPressed(KEY_W)
     && FloatEquals(platform_final_position.x, -1)
     && FloatEquals(platform_final_position.y, -1)) {
-      log("Player #", selected_player);
-      assert(selected_player < number_of_players);
-      Vector2 v = player_positions[selected_player];
-      log("Y", v.y);
-      // assert(player_positions[selected_player].y - 1 >= 0);
-      s8 y = ((s8)player_positions[selected_player].y) - 1;
+      s8 y = cast_u8(player_positions[selected_player].y) - 1;
+      u8 x = cast_u8(player_positions[selected_player].x);
+
       if(selected_platform == -1) {
-        if(0 <= y && board[(u8)player_positions[selected_player].x][y]) {
+        if(0 <= y && board[y][x]) {
           player_positions[selected_player].y--;
         }
       } else {
-        while(0 <= y && (board[(u8)player_positions[selected_player].x][y] == false)) {
+        while(0 <= y && (board[y][x] == false)) {
           y--;
         }
-        // log("W", 0);
-        // log("Y", y);
-        // log("Final Y", y + 1);
         platform_final_position.y = y + 1;
       }
     }
@@ -131,21 +119,17 @@ s32 main() {
     if(IsKeyPressed(KEY_S)
     && FloatEquals(platform_final_position.x, -1)
     && FloatEquals(platform_final_position.y, -1)) {
-      s8 y = ((s8)player_positions[selected_player].y) + 1;
+      s8 y = cast_u8(player_positions[selected_player].y) + 1;
+      u8 x = cast_u8(player_positions[selected_player].x);
+
       if(selected_platform == -1) {
-        if(y < 7 && board[(u8)player_positions[selected_player].x][y]) {
+        if(y < 7 && board[y][x]) {
           player_positions[selected_player].y++;
-          // log("S");
-          // log("Y", y);
-          // log("Final Y", y - 1);
         }
       } else {
-        while(y < 7 && board[(u8)player_positions[selected_player].x][y] == false) {
+        while(y < 7 && board[y][x] == false) {
           y++;
         }
-        // log("S", 0);
-        // log("Y", y);
-        // log("Final Y", y + 1);
         platform_final_position.y = y - 1;
       }
     }
@@ -153,21 +137,17 @@ s32 main() {
     if(IsKeyPressed(KEY_A)
     && FloatEquals(platform_final_position.x, -1)
     && FloatEquals(platform_final_position.y, -1)) {
-      s8 x = ((s8)player_positions[selected_player].x) - 1;
+      s8 x = cast_u8(player_positions[selected_player].x) - 1;
+      u8 y = cast_u8(player_positions[selected_player].y);
+
       if(selected_platform == -1) {
-        if(0 <= x && board[x][(u8)player_positions[selected_player].y]) {
+        if(0 <= x && board[y][x]) {
           player_positions[selected_player].x--;
-          // log("A");
-          // log("Y", y);
-          // log("Final Y", y - 1);
         }
       } else {
-        while(0 <= x && (board[x][(u8)player_positions[selected_player].y] == false)) {
+        while(0 <= x && (board[y][x] == false)) {
           x--;
         }
-        // log("A", 0);
-        // log("X", x);
-        // log("Final X", x + 1);
         platform_final_position.x = x + 1;
       }
     }
@@ -175,21 +155,19 @@ s32 main() {
     if(IsKeyPressed(KEY_D)
     && FloatEquals(platform_final_position.x, -1)
     && FloatEquals(platform_final_position.y, -1)) {
-      s8 x = ((s8)player_positions[selected_player].x) + 1;
+      s8 x = cast_u8(player_positions[selected_player].x) + 1;
+      u8 y = cast_u8(player_positions[selected_player].y);
+
       if(selected_platform == -1) {
-        if(x < 7 && board[x][(u8)player_positions[selected_player].y]) {
+        if(x < 7 && board[y][x]) {
+          // log("DX", x);
           player_positions[selected_player].x++;
-          // log("D");
-          // log("X", x);
-          // log("Final x", x - 1);
         }
       } else {
-        while(x < 7 && (board[x][(u8)player_positions[selected_player].y] == false)) {
+        while(x < 7 && (board[y][x] == false)) {
           x++;
         }
-        // log("D", 0);
-        // log("X", x);
-        // log("Final X", x + 1);
+        // log("X", x - 1);
         platform_final_position.x = x - 1;
       }
     }
@@ -202,8 +180,8 @@ s32 main() {
       } else {
         s8 index = 0;
         for(auto platform_position : platform_positions) {
-          if((u8)player_positions[selected_player].x == (u8)platform_position.x
-          && (u8)player_positions[selected_player].y == (u8)platform_position.y) {
+          if(cast_u8(player_positions[selected_player].x) == cast_u8(platform_position.x)
+          && cast_u8(player_positions[selected_player].y) == cast_u8(platform_position.y)) {
             selected_platform = index;
             break;
           }
@@ -223,21 +201,17 @@ s32 main() {
         platform_positions[selected_platform].x = x;
 
         if(FloatEquals(player_positions[selected_player].x, platform_final_position.x)) {
+          platform_positions[selected_platform].x = cast_u8(x);
+          // log("X", x);
+          // log("Player X", player_positions[selected_player].x);
+          // log("Platform X", platform_positions[selected_platform].x);
           selected_player = (selected_player + 1) % number_of_players;
           selected_platform = -1;
-          platform_final_position *= 0;
-          platform_final_position += -1;
+          platform_final_position = {-1,-1};
 
           /// @todo: simplify this, could set to false when select the platform and then set to true here, with the new position
-          // for(auto &row : board)
-          //   for(auto &column : row)
-          //     column = false;
           clear_board_positions();
           update_board_positions(platform_positions);
-
-          // for(auto platform_position : platform_positions) {
-          //   board[(u8)platform_position.x][(u8)platform_position.y] = true;
-          // }
         }
 
         animation_current_time += dt;
@@ -249,21 +223,14 @@ s32 main() {
         platform_positions[selected_platform].y = y;
 
         if(FloatEquals(player_positions[selected_player].y, platform_final_position.y)) {
+          platform_positions[selected_platform].y = cast_u8(y);
           selected_player = (selected_player + 1) % number_of_players;
           selected_platform = -1;
-          platform_final_position *= 0;
-          platform_final_position += -1;
+          platform_final_position = {-1,-1};
 
           /// @todo: simplify this, could set to false when select the platform and then set to true here, with the new position
-          // for(auto &row : board)
-          //   for(auto &column : row)
-          //     column = false;
           clear_board_positions();
           update_board_positions(platform_positions);
-
-          // for(auto platform_position : platform_positions) {
-          //   board[(u8)platform_position.x][(u8)platform_position.y] = true;
-          // }
         }
 
         animation_current_time += dt;
@@ -282,8 +249,8 @@ s32 main() {
       Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, platform_position, move_distance);
       draw_texture(platform_texture, screen_position, board_texture_scale);
 
-      if(board[(u8)platform_position.x][(u8)platform_position.y]) {
-        DrawCircleV(screen_position, 5, MAGENTA);
+      if(board[cast_u8(platform_position.y)][cast_u8(platform_position.x)]) {
+        DrawCircleV(screen_position, 7, MAGENTA);
       }
     }
 
@@ -299,14 +266,20 @@ s32 main() {
       draw_texture(player_textures[player_index++], player_position_screen);
     }
 
-    // for(auto row : board) {
-    //   for(auto column : row) {
-    //     if(column) {
-    //       Vector2 center = convert_board_position_to_screen_position(board_top_left, move_distance, platform_positions[selected_platform]);
-    //       DrawCircleV(center, 3, RED);
-    //     }
-    //   }
-    // }
+    u8 y = 0;
+    for(auto &row : board) {
+      u8 x = 0;
+      for(auto column : row) {
+        Vector2 center = convert_board_position_to_screen_position(board_top_left, (Vector2){(f32)0.5+(f32)1*x,(f32)0.5+y*1}, move_distance);
+        if(column) {
+          DrawCircleV(center, 15, LIME);
+        } else {
+          DrawCircleV(center, 15, VIOLET);
+        }
+        x++;
+      }
+      y++;
+    }
 
     EndDrawing();
   }
