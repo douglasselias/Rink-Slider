@@ -31,6 +31,13 @@ s32 main() {
   init_screen();
   init_font();
 
+  InitAudioDevice();
+  // Music bgm = LoadMusicStream("sfx/8bit_bossa.mp3");
+  Music bgm = LoadMusicStream("sfx/peachtea_somewhere_in_the_elevator.ogg");
+  PlayMusicStream(bgm);
+
+  Sound move_sfx = LoadSound("sfx/select.ogg");
+
   Texture2D board_texture = LoadTexture("gfx/board.png");
   Vector2 board_position = {
     screen_center.x - board_texture.width,
@@ -68,18 +75,6 @@ s32 main() {
   };
   s8 selected_platform = -1;
 
-  #define number_of_players 2
-  Vector2 player_positions[number_of_players] = {
-    // Top left
-    {0,0},
-    // Top right
-    {6,0},
-    // Bottom left
-    // {0,6},
-    // Bottom right
-    // {6,6},
-  };
-
   Texture2D platform_frame_texture = LoadTexture("gfx/platform_frame.png");
   update_board_positions(platform_positions);
 
@@ -102,6 +97,7 @@ s32 main() {
 
   while (!WindowShouldClose()) {
     f32 dt = GetFrameTime();
+    UpdateMusicStream(bgm);
 
     if(IsKeyPressed(KEY_W)
     && FloatEquals(platform_final_position.x, -1)
@@ -113,12 +109,15 @@ s32 main() {
         if(0 <= y && (board[y][x] & PLATFORM) && !(board[y][x] & PLAYER)) {
           player_positions[selected_player].y--;
           update_board_players(player_positions);
+          PlaySound(move_sfx);
         }
       } else {
-        while(0 <= y && (board[y][x] == false)) {
-          y--;
+        if(0 <= y && board[y][x] == false) {
+          while(0 <= y && (board[y][x] == false)) {
+            y--;
+          }
+          platform_final_position.y = y + 1;
         }
-        platform_final_position.y = y + 1;
       }
     }
 
@@ -132,12 +131,15 @@ s32 main() {
         if(y < 7 && (board[y][x] & PLATFORM) && !(board[y][x] & PLAYER)) {
           player_positions[selected_player].y++;
           update_board_players(player_positions);
+          PlaySound(move_sfx);
         }
       } else {
-        while(y < 7 && board[y][x] == false) {
-          y++;
+        if(y < 7 && board[y][x] == false) {
+          while(y < 7 && board[y][x] == false) {
+            y++;
+          }
+          platform_final_position.y = y - 1;
         }
-        platform_final_position.y = y - 1;
       }
     }
 
@@ -151,12 +153,15 @@ s32 main() {
         if(0 <= x && (board[y][x] & PLATFORM) && !(board[y][x] & PLAYER)) {
           player_positions[selected_player].x--;
           update_board_players(player_positions);
+          PlaySound(move_sfx);
         }
       } else {
-        while(0 <= x && (board[y][x] == false)) {
-          x--;
+        if(0 <= x && board[y][x] == false) {
+          while(0 <= x && (board[y][x] == false)) {
+            x--;
+          }
+          platform_final_position.x = x + 1;
         }
-        platform_final_position.x = x + 1;
       }
     }
 
@@ -170,12 +175,15 @@ s32 main() {
         if(x < 7 && (board[y][x] & PLATFORM) && !(board[y][x] & PLAYER)) {
           player_positions[selected_player].x++;
           update_board_players(player_positions);
+          PlaySound(move_sfx);
         }
       } else {
-        while(x < 7 && (board[y][x] == false)) {
-          x++;
+        if(x < 7 && board[y][x] == false) {
+          while(x < 7 && (board[y][x] == false)) {
+            x++;
+          }
+          platform_final_position.x = x - 1;
         }
-        platform_final_position.x = x - 1;
       }
     }
 
@@ -319,6 +327,7 @@ s32 main() {
   unload_font();
   UnloadTexture(platform_texture);
   UnloadTexture(board_texture);
+  UnloadMusicStream(bgm);
 
   CloseWindow();
   return 0;
