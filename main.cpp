@@ -27,6 +27,7 @@ f32 ease_in_out_quart(f32 x) {
   return x < 0.5f ? 8 * (f32)pow(x, 4) : 1 - (f32)pow(-2 * x + 2, 4) / 2;
 }
 
+// MARK: main
 s32 main() {
   init_screen();
   init_font();
@@ -95,9 +96,58 @@ s32 main() {
 
   s8 winner = -1;
 
+  Texture2D menu_option_2_players = LoadTexture("gfx/players_2.png");
+  Texture2D menu_option_3_players = LoadTexture("gfx/players_3.png");
+  Texture2D menu_option_4_players = LoadTexture("gfx/players_4.png");
+
+  bool hovering_2_players = false;
+  bool hovering_3_players = false;
+  bool hovering_4_players = false;
+
+  f32 hover_scale = 1.1f;
+
+  Vector2 menu_option_2_position_default = {(f32)40, screen_center.y - (f32)menu_option_2_players.height / 2};
+  Vector2 menu_option_3_position_default = {(f32)80 + menu_option_2_players.width, screen_center.y - (f32)menu_option_3_players.height / 2};
+  Vector2 menu_option_4_position_default = {(f32)120 + menu_option_2_players.width + menu_option_3_players.width, screen_center.y - (f32)menu_option_4_players.height / 2};
+
+  Vector2 menu_option_2_position = menu_option_2_position_default;
+  Vector2 menu_option_3_position = menu_option_3_position_default;
+  Vector2 menu_option_4_position = menu_option_4_position_default;
+
+  Sound select_sfx = LoadSound("sfx/confirmation.ogg");
+
+  // MARK: game loop
   while (!WindowShouldClose()) {
     f32 dt = GetFrameTime();
     UpdateMusicStream(bgm);
+
+    Vector2 mouse_position = GetMousePosition();
+
+    hovering_2_players = CheckCollisionPointRec(mouse_position, (Rectangle){menu_option_2_position.x, menu_option_2_position.y, (f32)menu_option_2_players.width, (f32)menu_option_2_players.height});
+    hovering_3_players = CheckCollisionPointRec(mouse_position, (Rectangle){menu_option_3_position.x, menu_option_3_position.y, (f32)menu_option_3_players.width, (f32)menu_option_3_players.height});
+    hovering_4_players = CheckCollisionPointRec(mouse_position, (Rectangle){menu_option_4_position.x, menu_option_4_position.y, (f32)menu_option_4_players.width, (f32)menu_option_4_players.height});
+
+    if(hovering_2_players) {
+      menu_option_2_position = menu_option_2_position_default - (Vector2){5,5};
+    } else {
+      menu_option_2_position = menu_option_2_position_default;
+    }
+
+    if(hovering_3_players) {
+      menu_option_3_position = menu_option_3_position_default - (Vector2){5,5};
+    } else {
+      menu_option_3_position = menu_option_3_position_default;
+    }
+
+    if(hovering_4_players) {
+      menu_option_4_position = menu_option_4_position_default - (Vector2){5,5};
+    } else {
+      menu_option_4_position = menu_option_4_position_default;
+    }
+
+    if(IsMouseButtonPressed(0) && (hovering_2_players || hovering_3_players || hovering_4_players)) {
+      PlaySound(select_sfx);
+    }
 
     if(IsKeyPressed(KEY_W)
     && FloatEquals(platform_final_position.x, -1)
@@ -319,6 +369,10 @@ s32 main() {
 
       draw_text(text, text_position, BLACK);
     }
+
+    draw_texture(menu_option_2_players, menu_option_2_position, hovering_2_players ? hover_scale : 1);
+    draw_texture(menu_option_3_players, menu_option_3_position, hovering_3_players ? hover_scale : 1);
+    draw_texture(menu_option_4_players, menu_option_4_position, hovering_4_players ? hover_scale : 1);
 
     EndDrawing();
   }
