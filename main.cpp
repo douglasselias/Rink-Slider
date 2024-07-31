@@ -106,9 +106,12 @@ s32 main() {
 
   f32 hover_scale = 1.1f;
 
-  Vector2 menu_option_2_position_default = {(f32)40, screen_center.y - (f32)menu_option_2_players.height / 2};
-  Vector2 menu_option_3_position_default = {(f32)80 + menu_option_2_players.width, screen_center.y - (f32)menu_option_3_players.height / 2};
-  Vector2 menu_option_4_position_default = {(f32)120 + menu_option_2_players.width + menu_option_3_players.width, screen_center.y - (f32)menu_option_4_players.height / 2};
+  s32 menu_gap = 20;
+  s32 menu_x_offset = -menu_gap + (menu_option_2_players.width + menu_option_3_players.width + menu_option_4_players.width) / 3;
+
+  Vector2 menu_option_2_position_default = {(f32)menu_x_offset, screen_center.y - (f32)menu_option_2_players.height / 2};
+  Vector2 menu_option_3_position_default = {(f32)menu_x_offset + menu_gap + menu_option_2_players.width, screen_center.y - (f32)menu_option_3_players.height / 2};
+  Vector2 menu_option_4_position_default = {(f32)menu_x_offset + menu_gap * 2 + menu_option_2_players.width + menu_option_3_players.width, screen_center.y - (f32)menu_option_4_players.height / 2};
 
   Vector2 menu_option_2_position = menu_option_2_position_default;
   Vector2 menu_option_3_position = menu_option_3_position_default;
@@ -123,30 +126,36 @@ s32 main() {
 
     Vector2 mouse_position = GetMousePosition();
 
-    hovering_2_players = CheckCollisionPointRec(mouse_position, (Rectangle){menu_option_2_position.x, menu_option_2_position.y, (f32)menu_option_2_players.width, (f32)menu_option_2_players.height});
-    hovering_3_players = CheckCollisionPointRec(mouse_position, (Rectangle){menu_option_3_position.x, menu_option_3_position.y, (f32)menu_option_3_players.width, (f32)menu_option_3_players.height});
-    hovering_4_players = CheckCollisionPointRec(mouse_position, (Rectangle){menu_option_4_position.x, menu_option_4_position.y, (f32)menu_option_4_players.width, (f32)menu_option_4_players.height});
+    hovering_2_players = CheckCollisionPointRec(mouse_position, (Rectangle){menu_option_2_position.x, menu_option_2_position.y, (f32)menu_option_2_players.width * (hovering_2_players ? hover_scale : 1), (f32)menu_option_2_players.height * (hovering_2_players ? hover_scale : 1)});
+    hovering_3_players = CheckCollisionPointRec(mouse_position, (Rectangle){menu_option_3_position.x, menu_option_3_position.y, (f32)menu_option_3_players.width * (hovering_3_players ? hover_scale : 1), (f32)menu_option_3_players.height * (hovering_3_players ? hover_scale : 1)});
+    hovering_4_players = CheckCollisionPointRec(mouse_position, (Rectangle){menu_option_4_position.x, menu_option_4_position.y, (f32)menu_option_4_players.width * (hovering_4_players ? hover_scale : 1), (f32)menu_option_4_players.height * (hovering_4_players ? hover_scale : 1)});
 
     if(hovering_2_players) {
-      menu_option_2_position = menu_option_2_position_default - (Vector2){5,5};
+      menu_option_2_position = menu_option_2_position_default - ((Vector2){(f32)menu_option_2_players.width, (f32)menu_option_2_players.height} * (hover_scale - 1)) / 2;
     } else {
       menu_option_2_position = menu_option_2_position_default;
     }
 
     if(hovering_3_players) {
-      menu_option_3_position = menu_option_3_position_default - (Vector2){5,5};
+      menu_option_3_position = menu_option_3_position_default - ((Vector2){(f32)menu_option_3_players.width, (f32)menu_option_3_players.height} * (hover_scale - 1)) / 2;
     } else {
       menu_option_3_position = menu_option_3_position_default;
     }
 
     if(hovering_4_players) {
-      menu_option_4_position = menu_option_4_position_default - (Vector2){5,5};
+      menu_option_4_position = menu_option_4_position_default - ((Vector2){(f32)menu_option_4_players.width, (f32)menu_option_4_players.height} * (hover_scale - 1)) / 2;
     } else {
       menu_option_4_position = menu_option_4_position_default;
     }
 
+    // hovering_2_players = CheckCollisionPointRec(mouse_position, (Rectangle){menu_option_2_position.x, menu_option_2_position.y, (f32)menu_option_2_players.width * (hovering_2_players ? hover_scale : 1), (f32)menu_option_2_players.height * (hovering_2_players ? hover_scale : 1)});
+    // hovering_3_players = CheckCollisionPointRec(mouse_position, (Rectangle){menu_option_3_position.x, menu_option_3_position.y, (f32)menu_option_3_players.width * (hovering_3_players ? hover_scale : 1), (f32)menu_option_3_players.height * (hovering_3_players ? hover_scale : 1)});
+    // hovering_4_players = CheckCollisionPointRec(mouse_position, (Rectangle){menu_option_4_position.x, menu_option_4_position.y, (f32)menu_option_4_players.width * (hovering_4_players ? hover_scale : 1), (f32)menu_option_4_players.height * (hovering_4_players ? hover_scale : 1)});
+
+
     if(IsMouseButtonPressed(0) && (hovering_2_players || hovering_3_players || hovering_4_players)) {
       PlaySound(select_sfx);
+      hovering_2_players = false;
     }
 
     if(IsKeyPressed(KEY_W)
@@ -322,9 +331,9 @@ s32 main() {
       Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, platform_position, move_distance);
       draw_texture(platform_texture, screen_position, board_texture_scale);
 
-      if(board[cast_u8(platform_position.y)][cast_u8(platform_position.x)]) {
-        DrawCircleV(screen_position, 7, MAGENTA);
-      }
+      // if(board[cast_u8(platform_position.y)][cast_u8(platform_position.x)]) {
+      //   DrawCircleV(screen_position, 7, MAGENTA);
+      // }
     }
 
     if(selected_platform != -1) {
@@ -339,24 +348,24 @@ s32 main() {
       draw_texture(player_textures[player_index++], player_position_screen);
     }
 
-    u8 y = 0;
-    for(auto &row : board) {
-      u8 x = 0;
-      for(auto column : row) {
-        Vector2 center = convert_board_position_to_screen_position(board_top_left, (Vector2){(f32)0.5+(f32)1*x,(f32)0.5+y*1}, move_distance);
-        if(column & PLATFORM) {
-          DrawCircleV(center, 15, LIME);
-        }
-        if(column & PLAYER) {
-          DrawCircleV(center, 10, GOLD);
-        }
-        if(column == false) {
-          DrawCircleV(center, 15, VIOLET);
-        }
-        x++;
-      }
-      y++;
-    }
+    // u8 y = 0;
+    // for(auto &row : board) {
+    //   u8 x = 0;
+    //   for(auto column : row) {
+    //     Vector2 center = convert_board_position_to_screen_position(board_top_left, (Vector2){(f32)0.5+(f32)1*x,(f32)0.5+y*1}, move_distance);
+    //     if(column & PLATFORM) {
+    //       DrawCircleV(center, 15, LIME);
+    //     }
+    //     if(column & PLAYER) {
+    //       DrawCircleV(center, 10, GOLD);
+    //     }
+    //     if(column == false) {
+    //       DrawCircleV(center, 15, VIOLET);
+    //     }
+    //     x++;
+    //   }
+    //   y++;
+    // }
 
     if(winner == -1) {
       const char* text = TextFormat("Congrats player %d!", (selected_player + 1));
@@ -373,6 +382,8 @@ s32 main() {
     draw_texture(menu_option_2_players, menu_option_2_position, hovering_2_players ? hover_scale : 1);
     draw_texture(menu_option_3_players, menu_option_3_position, hovering_3_players ? hover_scale : 1);
     draw_texture(menu_option_4_players, menu_option_4_position, hovering_4_players ? hover_scale : 1);
+
+    DrawRectangleLinesEx((Rectangle){menu_option_2_position.x, menu_option_2_position.y, (f32)menu_option_2_players.width, (f32)menu_option_2_players.height}, 5, RED);
 
     EndDrawing();
   }
