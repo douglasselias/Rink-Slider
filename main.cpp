@@ -24,6 +24,7 @@ enum Game_State {
 s32 main() {
   init_screen();
   init_font();
+  init_font_title();
 
   // Music bgm = LoadMusicStream("sfx/8bit_bossa.mp3");
   Music bgm = LoadMusicStream("sfx/peachtea_somewhere_in_the_elevator.ogg");
@@ -116,11 +117,23 @@ s32 main() {
     }
 
     Vector2 mouse_position = GetMousePosition();
-    check_mouse_collision_with_menu_options(mouse_position);
+    check_mouse_collision_with_menu_options(mouse_position, dt);
 
     if(IsMouseButtonPressed(0) && (hovering_2_players || hovering_3_players || hovering_4_players)) {
       PlaySound(select_sfx);
-      hovering_2_players = false;
+      if(hovering_2_players) {
+        menu_option_2_position = menu_option_2_position_default;
+        hovering_2_players = false;
+        // menu_option_index = 0;
+      } else if(hovering_3_players) {
+        menu_option_3_position = menu_option_3_position_default;
+        hovering_3_players = false;
+        // menu_option_index = 1;
+      } else if(hovering_4_players) {
+        menu_option_4_position = menu_option_4_position_default;
+        hovering_4_players = false;
+        // menu_option_index = 2;
+      }
     }
 
     if(IsKeyPressed(KEY_W)
@@ -334,7 +347,11 @@ s32 main() {
         DrawTextureV(player_textures[player_index++], player_position_screen, WHITE);
       }
     } else if(game_state == main_menu) {
-      draw_menu_options();
+      Vector2 text_size = measure_text_title(game_title);
+      Vector2 text_position = {screen_center.x - text_size.x/2, text_size.y};
+      draw_text_title(game_title, text_position + (Vector2){6, 6}, BLACK);
+      draw_text_title(game_title, text_position, GOLD);
+      draw_menu_options(dt);
     }
 
 
@@ -364,7 +381,7 @@ s32 main() {
       // draw_text(text, (Vector2){text_position.x - 5, text_position.y}, WHITE);
       // draw_text(text, (Vector2){text_position.x + 5, text_position.y}, WHITE);
       // draw_text(text, (Vector2){text_position.x, text_position.y - 5}, WHITE);
-      draw_text(text, (Vector2){text_position.x + 5, text_position.y + 5}, WHITE);
+      draw_text(text, text_position + 5, WHITE);
 
       draw_text(text, text_position, BLACK);
     }
