@@ -13,31 +13,28 @@
 #include "src/screen.cpp"
 #include "src/font.cpp"
 #include "src/board.cpp"
+#include "src/menu.cpp"
 
-void draw_texture(Texture2D texture, Vector2 position, f32 scale = 1) {
-  Rectangle source = {0, 0, (f32)texture.width, (f32)texture.height};
-  Rectangle dest = {position.x, position.y, (f32)texture.width * scale, (f32)texture.height * scale};
-  Vector2 origin = {0,0};
-  u8 rotation = 0;
-  Color tint = WHITE;
-  DrawTexturePro(texture, source, dest, origin, rotation, tint);
-}
-
-f32 ease_in_out_quart(f32 x) {
-  return x < 0.5f ? 8 * (f32)pow(x, 4) : 1 - (f32)pow(-2 * x + 2, 4) / 2;
-}
+enum Game_State {
+  main_menu,
+  playing,
+};
 
 // MARK: main
 s32 main() {
   init_screen();
   init_font();
 
-  InitAudioDevice();
   // Music bgm = LoadMusicStream("sfx/8bit_bossa.mp3");
   Music bgm = LoadMusicStream("sfx/peachtea_somewhere_in_the_elevator.ogg");
+  SetMasterVolume(0.4f);
   PlayMusicStream(bgm);
 
   Sound move_sfx = LoadSound("sfx/select.ogg");
+
+  Sound select_sfx = LoadSound("sfx/confirmation.ogg");
+  Sound sliding_sfx = LoadSound("sfx/sliding.ogg");
+  SetSoundVolume(sliding_sfx, 1);
 
   Texture2D board_texture = LoadTexture("gfx/board.png");
   Vector2 board_position = {
@@ -96,66 +93,35 @@ s32 main() {
 
   s8 winner = -1;
 
-  Texture2D menu_option_2_players = LoadTexture("gfx/players_2.png");
-  Texture2D menu_option_3_players = LoadTexture("gfx/players_3.png");
-  Texture2D menu_option_4_players = LoadTexture("gfx/players_4.png");
+  init_menu_options();
 
-  bool hovering_2_players = false;
-  bool hovering_3_players = false;
-  bool hovering_4_players = false;
+  Game_State game_state = main_menu;
 
-  f32 hover_scale = 1.1f;
-
-  s32 menu_gap = 20;
-  s32 menu_x_offset = -menu_gap + (menu_option_2_players.width + menu_option_3_players.width + menu_option_4_players.width) / 3;
-
-  Vector2 menu_option_2_position_default = {(f32)menu_x_offset, screen_center.y - (f32)menu_option_2_players.height / 2};
-  Vector2 menu_option_3_position_default = {(f32)menu_x_offset + menu_gap + menu_option_2_players.width, screen_center.y - (f32)menu_option_3_players.height / 2};
-  Vector2 menu_option_4_position_default = {(f32)menu_x_offset + menu_gap * 2 + menu_option_2_players.width + menu_option_3_players.width, screen_center.y - (f32)menu_option_4_players.height / 2};
-
-  Vector2 menu_option_2_position = menu_option_2_position_default;
-  Vector2 menu_option_3_position = menu_option_3_position_default;
-  Vector2 menu_option_4_position = menu_option_4_position_default;
-
-  Sound select_sfx = LoadSound("sfx/confirmation.ogg");
+  Texture2D bg_texture = LoadTexture("gfx/bg.png");
+  GenTextureMipmaps(&bg_texture);
+  SetTextureWrap(bg_texture, TEXTURE_WRAP_REPEAT);
+  SetTextureFilter(bg_texture, TEXTURE_FILTER_TRILINEAR);
 
   // MARK: game loop
   while (!WindowShouldClose()) {
     f32 dt = GetFrameTime();
-    UpdateMusicStream(bgm);
+    // UpdateMusicStream(bgm);
 
     Vector2 mouse_position = GetMousePosition();
 
-    hovering_2_players = CheckCollisionPointRec(mouse_position, (Rectangle){menu_option_2_position.x, menu_option_2_position.y, (f32)menu_option_2_players.width * (hovering_2_players ? hover_scale : 1), (f32)menu_option_2_players.height * (hovering_2_players ? hover_scale : 1)});
-    hovering_3_players = CheckCollisionPointRec(mouse_position, (Rectangle){menu_option_3_position.x, menu_option_3_position.y, (f32)menu_option_3_players.width * (hovering_3_players ? hover_scale : 1), (f32)menu_option_3_players.height * (hovering_3_players ? hover_scale : 1)});
-    hovering_4_players = CheckCollisionPointRec(mouse_position, (Rectangle){menu_option_4_position.x, menu_option_4_position.y, (f32)menu_option_4_players.width * (hovering_4_players ? hover_scale : 1), (f32)menu_option_4_players.height * (hovering_4_players ? hover_scale : 1)});
-
-    if(hovering_2_players) {
-      menu_option_2_position = menu_option_2_position_default - ((Vector2){(f32)menu_option_2_players.width, (f32)menu_option_2_players.height} * (hover_scale - 1)) / 2;
-    } else {
-      menu_option_2_position = menu_option_2_position_default;
-    }
-
-    if(hovering_3_players) {
-      menu_option_3_position = menu_option_3_position_default - ((Vector2){(f32)menu_option_3_players.width, (f32)menu_option_3_players.height} * (hover_scale - 1)) / 2;
-    } else {
-      menu_option_3_position = menu_option_3_position_default;
-    }
-
-    if(hovering_4_players) {
-      menu_option_4_position = menu_option_4_position_default - ((Vector2){(f32)menu_option_4_players.width, (f32)menu_option_4_players.height} * (hover_scale - 1)) / 2;
-    } else {
-      menu_option_4_position = menu_option_4_position_default;
-    }
-
-    // hovering_2_players = CheckCollisionPointRec(mouse_position, (Rectangle){menu_option_2_position.x, menu_option_2_position.y, (f32)menu_option_2_players.width * (hovering_2_players ? hover_scale : 1), (f32)menu_option_2_players.height * (hovering_2_players ? hover_scale : 1)});
-    // hovering_3_players = CheckCollisionPointRec(mouse_position, (Rectangle){menu_option_3_position.x, menu_option_3_position.y, (f32)menu_option_3_players.width * (hovering_3_players ? hover_scale : 1), (f32)menu_option_3_players.height * (hovering_3_players ? hover_scale : 1)});
-    // hovering_4_players = CheckCollisionPointRec(mouse_position, (Rectangle){menu_option_4_position.x, menu_option_4_position.y, (f32)menu_option_4_players.width * (hovering_4_players ? hover_scale : 1), (f32)menu_option_4_players.height * (hovering_4_players ? hover_scale : 1)});
-
+    check_mouse_collision_with_menu_options(mouse_position);
 
     if(IsMouseButtonPressed(0) && (hovering_2_players || hovering_3_players || hovering_4_players)) {
       PlaySound(select_sfx);
       hovering_2_players = false;
+    }
+
+    if(IsKeyPressed(KEY_A) && game_state == main_menu) {
+      menu_option_index = (s8)Clamp(--menu_option_index, 0, 2);
+    }
+
+    if(IsKeyPressed(KEY_D) && game_state == main_menu) {
+      menu_option_index = (s8)Clamp(++menu_option_index, 0, 2);
     }
 
     if(IsKeyPressed(KEY_W)
@@ -176,6 +142,7 @@ s32 main() {
             y--;
           }
           platform_final_position.y = y + 1;
+          PlaySound(sliding_sfx);
         }
       }
     }
@@ -198,6 +165,7 @@ s32 main() {
             y++;
           }
           platform_final_position.y = y - 1;
+          PlaySound(sliding_sfx);
         }
       }
     }
@@ -220,6 +188,7 @@ s32 main() {
             x--;
           }
           platform_final_position.x = x + 1;
+          PlaySound(sliding_sfx);
         }
       }
     }
@@ -242,6 +211,7 @@ s32 main() {
             x++;
           }
           platform_final_position.x = x - 1;
+          PlaySound(sliding_sfx);
         }
       }
     }
@@ -322,31 +292,52 @@ s32 main() {
       animation_current_time = 0;
     }
 
+    if(IsKeyPressed(KEY_A)) {previous_color();}
+    if(IsKeyPressed(KEY_D)) {next_color();}
+
     BeginDrawing();
     ClearBackground(BLACK);
-    
-    draw_texture(board_texture, board_position, board_texture_scale);
 
-    for(auto platform_position : platform_positions) {
-      Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, platform_position, move_distance);
-      draw_texture(platform_texture, screen_position, board_texture_scale);
+    u64 bg_column_chunk = (u64)screen_width  / (u64)bg_texture.width;
+    u64 bg_row_chunk    = (u64)screen_height / (u64)bg_texture.height;
+    // log("column", bg_column_chunk);
 
-      // if(board[cast_u8(platform_position.y)][cast_u8(platform_position.x)]) {
-      //   DrawCircleV(screen_position, 7, MAGENTA);
-      // }
+    BeginShaderMode(outline_fs);
+    for(u64 i = 0; i < bg_column_chunk; i++) {
+      for(u64 j = 0; j <= bg_row_chunk; j++) {
+        DrawTextureV(bg_texture, {(f32)i*bg_texture.width,(f32)j*bg_texture.height}, palette[palette_index]);
+      }
+      // DrawTexturePro(bg_texture, {0,0,(f32)bg_texture.width, (f32)bg_texture.height}, {0,0,screen_width,screen_height}, {0,0}, 0, WHITE);
+    }
+    EndShaderMode();
+    // draw_text(TextFormat("Color %d", palette_index), {5, 5}, MAGENTA);
+
+    if(game_state == playing) {
+      draw_texture(board_texture, board_position, board_texture_scale);
+      for(auto platform_position : platform_positions) {
+        Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, platform_position, move_distance);
+        draw_texture(platform_texture, screen_position, board_texture_scale);
+
+        // if(board[cast_u8(platform_position.y)][cast_u8(platform_position.x)]) {
+        //   DrawCircleV(screen_position, 7, MAGENTA);
+        // }
+      }
+
+      if(selected_platform != -1) {
+        Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, platform_positions[selected_platform], move_distance);
+        f32 platform_frame_texture_scale = 1.5;
+        draw_texture(platform_frame_texture, screen_position, platform_frame_texture_scale);
+      }
+
+      u8 player_index = 0;
+      for(auto player_position : player_positions) {
+        Vector2 player_position_screen = convert_board_position_to_screen_position(board_top_left + player_offset, player_position, move_distance);
+        DrawTextureV(player_textures[player_index++], player_position_screen, WHITE);
+      }
+    } else if(game_state == main_menu) {
+      draw_menu_options();
     }
 
-    if(selected_platform != -1) {
-      Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, platform_positions[selected_platform], move_distance);
-      f32 platform_frame_texture_scale = 1.5;
-      draw_texture(platform_frame_texture, screen_position, platform_frame_texture_scale);
-    }
-
-    u8 player_index = 0;
-    for(auto player_position : player_positions) {
-      Vector2 player_position_screen = convert_board_position_to_screen_position(board_top_left + player_offset, player_position, move_distance);
-      draw_texture(player_textures[player_index++], player_position_screen);
-    }
 
     // u8 y = 0;
     // for(auto &row : board) {
@@ -367,7 +358,7 @@ s32 main() {
     //   y++;
     // }
 
-    if(winner == -1) {
+    if(winner != -1) {
       const char* text = TextFormat("Congrats player %d!", (selected_player + 1));
       Vector2 text_size = measure_text(text);
       Vector2 text_position = {screen_center.x - text_size.x/2, screen_center.y};
@@ -378,12 +369,6 @@ s32 main() {
 
       draw_text(text, text_position, BLACK);
     }
-
-    draw_texture(menu_option_2_players, menu_option_2_position, hovering_2_players ? hover_scale : 1);
-    draw_texture(menu_option_3_players, menu_option_3_position, hovering_3_players ? hover_scale : 1);
-    draw_texture(menu_option_4_players, menu_option_4_position, hovering_4_players ? hover_scale : 1);
-
-    DrawRectangleLinesEx((Rectangle){menu_option_2_position.x, menu_option_2_position.y, (f32)menu_option_2_players.width, (f32)menu_option_2_players.height}, 5, RED);
 
     EndDrawing();
   }
