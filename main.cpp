@@ -107,21 +107,20 @@ s32 main() {
     f32 dt = GetFrameTime();
     // UpdateMusicStream(bgm);
 
-    Vector2 mouse_position = GetMousePosition();
-
-    check_mouse_collision_with_menu_options(mouse_position);
-
-    if(IsMouseButtonPressed(0) && (hovering_2_players || hovering_3_players || hovering_4_players)) {
-      PlaySound(select_sfx);
-      hovering_2_players = false;
-    }
-
     if(IsKeyPressed(KEY_A) && game_state == main_menu) {
       menu_option_index = (s8)Clamp(--menu_option_index, 0, 2);
     }
 
     if(IsKeyPressed(KEY_D) && game_state == main_menu) {
       menu_option_index = (s8)Clamp(++menu_option_index, 0, 2);
+    }
+
+    Vector2 mouse_position = GetMousePosition();
+    check_mouse_collision_with_menu_options(mouse_position);
+
+    if(IsMouseButtonPressed(0) && (hovering_2_players || hovering_3_players || hovering_4_players)) {
+      PlaySound(select_sfx);
+      hovering_2_players = false;
     }
 
     if(IsKeyPressed(KEY_W)
