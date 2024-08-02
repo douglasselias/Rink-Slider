@@ -24,7 +24,6 @@ s8 menu_option_index = 0;
 
 void init_menu_options() {
   /// @todo: this belongs to bg texture
-  // move_vs = LoadShader(0, "shaders/move.vs");
   outline_fs = LoadShader("shaders/move.vs", "shaders/outline.fs");
   time_location_shader = GetShaderLocation(outline_fs, "time");
 
@@ -86,14 +85,18 @@ f32 scale_3 = 1;
 f32 scale_4 = 1;
 /// @todo: maybe join with the other lerp constant (lerp_scale), instead of having two separate constants
 f32 lerp_hover_scale = 25;
+
 void draw_menu_options(f32 dt) {
   // static f32 scale_2 = 1;
   // static f32 scale_3 = 1;
   // static f32 scale_4 = 1;
+
   scale_2 = (menu_option_index == 0 || hovering_2_players) ? Lerp(scale_2, hover_scale, dt * lerp_hover_scale) : Lerp(scale_2, 1, dt * lerp_hover_scale);
   draw_texture(menu_option_2_players, menu_option_2_position, scale_2, menu_option_index == 0 ? GOLD : WHITE);
+
   scale_3 = (menu_option_index == 1 || hovering_3_players) ? Lerp(scale_3, hover_scale, dt * lerp_hover_scale) : Lerp(scale_3, 1, dt * lerp_hover_scale);
   draw_texture(menu_option_3_players, menu_option_3_position, scale_3, menu_option_index == 1 ? GOLD : WHITE);
+
   scale_4 = (menu_option_index == 2 || hovering_4_players) ? Lerp(scale_4, hover_scale, dt * lerp_hover_scale) : Lerp(scale_4, 1, dt * lerp_hover_scale);
   draw_texture(menu_option_4_players, menu_option_4_position, scale_4, menu_option_index == 2 ? GOLD : WHITE);
 }

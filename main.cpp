@@ -122,24 +122,52 @@ s32 main() {
     Vector2 mouse_position = GetMousePosition();
     check_mouse_collision_with_menu_options(mouse_position, dt);
 
-    if(IsMouseButtonPressed(0) && (hovering_2_players || hovering_3_players || hovering_4_players)) {
+    if((IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) && game_state == main_menu) {
+      /// @todo: merge with code below
+      PlaySound(select_sfx);
+      if(menu_option_index == 0) {
+        menu_option_2_position = menu_option_2_position_default;
+        /// @todo: is hovering necessary here?
+        hovering_2_players = false;
+        // menu_option_index = 0;
+        scale_2 = 1;
+      } else if(menu_option_index == 1) {
+        menu_option_3_position = menu_option_3_position_default;
+        hovering_3_players = false;
+        // menu_option_index = 1;
+        scale_3 = 1;
+      } else if(menu_option_index == 2) {
+        menu_option_4_position = menu_option_4_position_default;
+        hovering_4_players = false;
+        // menu_option_index = 2;
+        scale_4 = 1;
+      }
+    }
+
+    if(IsMouseButtonPressed(0)
+    && game_state == main_menu
+    && (hovering_2_players || hovering_3_players || hovering_4_players)) {
       PlaySound(select_sfx);
       if(hovering_2_players) {
         menu_option_2_position = menu_option_2_position_default;
         hovering_2_players = false;
-        // menu_option_index = 0;
+        menu_option_index = 0;
+        scale_2 = 1;
       } else if(hovering_3_players) {
         menu_option_3_position = menu_option_3_position_default;
         hovering_3_players = false;
-        // menu_option_index = 1;
+        menu_option_index = 1;
+        scale_3 = 1;
       } else if(hovering_4_players) {
         menu_option_4_position = menu_option_4_position_default;
         hovering_4_players = false;
-        // menu_option_index = 2;
+        menu_option_index = 2;
+        scale_4 = 1;
       }
     }
 
     if(IsKeyPressed(KEY_W)
+    && game_state == playing
     && FloatEquals(platform_final_position.x, -1)
     && FloatEquals(platform_final_position.y, -1)) {
       s8 y = cast_u8(player_positions[selected_player].y) - 1;
@@ -163,6 +191,7 @@ s32 main() {
     }
 
     if(IsKeyPressed(KEY_S)
+    && game_state == playing
     && FloatEquals(platform_final_position.x, -1)
     && FloatEquals(platform_final_position.y, -1)) {
       s8 y = cast_u8(player_positions[selected_player].y) + 1;
@@ -186,6 +215,7 @@ s32 main() {
     }
 
     if(IsKeyPressed(KEY_A)
+    && game_state == playing
     && FloatEquals(platform_final_position.x, -1)
     && FloatEquals(platform_final_position.y, -1)) {
       s8 x = cast_u8(player_positions[selected_player].x) - 1;
@@ -209,6 +239,7 @@ s32 main() {
     }
 
     if(IsKeyPressed(KEY_D)
+    && game_state == playing
     && FloatEquals(platform_final_position.x, -1)
     && FloatEquals(platform_final_position.y, -1)) {
       s8 x = cast_u8(player_positions[selected_player].x) + 1;
@@ -232,6 +263,7 @@ s32 main() {
     }
 
     if(IsKeyPressed(KEY_SPACE)
+    && game_state == playing
     && FloatEquals(platform_final_position.x, -1)
     && FloatEquals(platform_final_position.y, -1)) {
       if(selected_platform != -1) {
