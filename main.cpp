@@ -106,6 +106,10 @@ s32 main() {
   f32 time = 0;
   f32 bg_movement_speed = 0.1f;
 
+  u8 number_of_players_playing = 2;
+
+  reset_player_positions();
+
   // MARK: game loop
   while (!WindowShouldClose()) {
     f32 dt = GetFrameTime();
@@ -131,16 +135,22 @@ s32 main() {
         hovering_2_players = false;
         // menu_option_index = 0;
         scale_2 = 1;
+        number_of_players_playing = 2;
+        game_state = playing;
       } else if(menu_option_index == 1) {
         menu_option_3_position = menu_option_3_position_default;
         hovering_3_players = false;
         // menu_option_index = 1;
         scale_3 = 1;
+        number_of_players_playing = 3;
+        game_state = playing;
       } else if(menu_option_index == 2) {
         menu_option_4_position = menu_option_4_position_default;
         hovering_4_players = false;
         // menu_option_index = 2;
         scale_4 = 1;
+        number_of_players_playing = 4;
+        game_state = playing;
       }
     }
 
@@ -153,16 +163,22 @@ s32 main() {
         hovering_2_players = false;
         menu_option_index = 0;
         scale_2 = 1;
+        number_of_players_playing = 2;
+        game_state = playing;
       } else if(hovering_3_players) {
         menu_option_3_position = menu_option_3_position_default;
         hovering_3_players = false;
         menu_option_index = 1;
         scale_3 = 1;
+        number_of_players_playing = 3;
+        game_state = playing;
       } else if(hovering_4_players) {
         menu_option_4_position = menu_option_4_position_default;
         hovering_4_players = false;
         menu_option_index = 2;
         scale_4 = 1;
+        number_of_players_playing = 4;
+        game_state = playing;
       }
     }
 
@@ -176,7 +192,7 @@ s32 main() {
       if(selected_platform == -1) {
         if(0 <= y && (board[y][x] & PLATFORM) && !(board[y][x] & PLAYER)) {
           player_positions[selected_player].y--;
-          update_board_players(player_positions);
+          update_board_players(player_positions, number_of_players_playing);
           PlaySound(move_sfx);
         }
       } else {
@@ -200,7 +216,7 @@ s32 main() {
       if(selected_platform == -1) {
         if(y < 7 && (board[y][x] & PLATFORM) && !(board[y][x] & PLAYER)) {
           player_positions[selected_player].y++;
-          update_board_players(player_positions);
+          update_board_players(player_positions, number_of_players_playing);
           PlaySound(move_sfx);
         }
       } else {
@@ -224,7 +240,7 @@ s32 main() {
       if(selected_platform == -1) {
         if(0 <= x && (board[y][x] & PLATFORM) && !(board[y][x] & PLAYER)) {
           player_positions[selected_player].x--;
-          update_board_players(player_positions);
+          update_board_players(player_positions, number_of_players_playing);
           PlaySound(move_sfx);
         }
       } else {
@@ -248,7 +264,7 @@ s32 main() {
       if(selected_platform == -1) {
         if(x < 7 && (board[y][x] & PLATFORM) && !(board[y][x] & PLAYER)) {
           player_positions[selected_player].x++;
-          update_board_players(player_positions);
+          update_board_players(player_positions, number_of_players_playing);
           PlaySound(move_sfx);
         }
       } else {
@@ -262,6 +278,7 @@ s32 main() {
       }
     }
 
+/// @todo: is selecting the platform after game init
     if(IsKeyPressed(KEY_SPACE)
     && game_state == playing
     && FloatEquals(platform_final_position.x, -1)
@@ -297,14 +314,14 @@ s32 main() {
           && cast_u8(platform_position.y) == 3) {
             winner = (s8)selected_player;
           }
-          selected_player = (selected_player + 1) % number_of_players;
+          selected_player = (selected_player + 1) % number_of_players_playing;
           selected_platform = -1;
           platform_final_position = {-1,-1};
 
           /// @todo: simplify this, could set to false when select the platform and then set to true here, with the new position
           clear_board_positions();
           update_board_positions(platform_positions);
-          update_board_players(player_positions);
+          update_board_players(player_positions, number_of_players_playing);
         }
 
         animation_current_time += dt;
@@ -322,14 +339,14 @@ s32 main() {
           && cast_u8(platform_position.y) == 3) {
             winner = (s8)selected_player;
           }
-          selected_player = (selected_player + 1) % number_of_players;
+          selected_player = (selected_player + 1) % number_of_players_playing;
           selected_platform = -1;
           platform_final_position = {-1,-1};
 
           /// @todo: simplify this, could set to false when select the platform and then set to true here, with the new position
           clear_board_positions();
           update_board_positions(platform_positions);
-          update_board_players(player_positions);
+          update_board_players(player_positions, number_of_players_playing);
         }
 
         animation_current_time += dt;
@@ -342,7 +359,6 @@ s32 main() {
     // if(IsKeyPressed(KEY_A)) {previous_color();}
     // if(IsKeyPressed(KEY_D)) {next_color();}
     time += dt * bg_movement_speed;
-    // log("Time", time);
     SetShaderValue(outline_fs, time_location_shader, &time, SHADER_UNIFORM_FLOAT);
 
     BeginDrawing();
@@ -357,10 +373,10 @@ s32 main() {
       for(u64 j = 0; j <= bg_row_chunk; j++) {
         DrawTextureV(bg_texture, {(f32)i*bg_texture.width,(f32)j*bg_texture.height}, palette[palette_index]);
       }
-      // DrawTexturePro(bg_texture, {0,0,(f32)bg_texture.width, (f32)bg_texture.height}, {0,0,screen_width,screen_height}, {0,0}, 0, WHITE);
     }
     EndShaderMode();
     // draw_text(TextFormat("Color %d", palette_index), {5, 5}, MAGENTA);
+    // draw_text(TextFormat("Game State %d", game_state), {5, 5}, MAGENTA);
 
     if(game_state == playing) {
       draw_texture(board_texture, board_position, board_texture_scale);
@@ -380,8 +396,8 @@ s32 main() {
       }
 
       u8 player_index = 0;
-      for(auto player_position : player_positions) {
-        Vector2 player_position_screen = convert_board_position_to_screen_position(board_top_left + player_offset, player_position, move_distance);
+      for(u8 i = 0; i < number_of_players_playing; i++) {
+        Vector2 player_position_screen = convert_board_position_to_screen_position(board_top_left + player_offset, player_positions[i], move_distance);
         DrawTextureV(player_textures[player_index++], player_position_screen, WHITE);
       }
     } else if(game_state == main_menu) {
