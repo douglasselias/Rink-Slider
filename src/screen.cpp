@@ -28,7 +28,7 @@ f32 ease_in_out_quart(f32 x) {
 }
 
 #define palette_size 26
-u8 palette_index = 0;
+u8 palette_index = 1;
 void previous_color() {palette_index = (u8)Clamp(--palette_index, 0, palette_size - 1);}
 void next_color()     {palette_index = (u8)Clamp(++palette_index, 0, palette_size - 1);}
 

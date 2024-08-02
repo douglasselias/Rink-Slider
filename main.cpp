@@ -103,6 +103,9 @@ s32 main() {
   SetTextureWrap(bg_texture, TEXTURE_WRAP_REPEAT);
   SetTextureFilter(bg_texture, TEXTURE_FILTER_TRILINEAR);
 
+  f32 time = 0;
+  f32 bg_movement_speed = 0.1f;
+
   // MARK: game loop
   while (!WindowShouldClose()) {
     f32 dt = GetFrameTime();
@@ -304,8 +307,11 @@ s32 main() {
       animation_current_time = 0;
     }
 
-    if(IsKeyPressed(KEY_A)) {previous_color();}
-    if(IsKeyPressed(KEY_D)) {next_color();}
+    // if(IsKeyPressed(KEY_A)) {previous_color();}
+    // if(IsKeyPressed(KEY_D)) {next_color();}
+    time += dt * bg_movement_speed;
+    // log("Time", time);
+    SetShaderValue(outline_fs, time_location_shader, &time, SHADER_UNIFORM_FLOAT);
 
     BeginDrawing();
     ClearBackground(BLACK);
