@@ -18,6 +18,7 @@
 enum Game_State {
   main_menu,
   playing,
+  game_over,
 };
 
 // MARK: main
@@ -119,6 +120,10 @@ s32 main() {
   while (!WindowShouldClose()) {
     f32 dt = GetFrameTime();
     // UpdateMusicStream(bgm);
+
+    if(IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+      game_state = main_menu;
+    }
 
     if(IsKeyPressed(KEY_A) && game_state == main_menu) {
       menu_option_index = (s8)Clamp(--menu_option_index, 0, 2);
@@ -318,6 +323,7 @@ s32 main() {
           if(cast_u8(platform_position.x) == 3
           && cast_u8(platform_position.y) == 3) {
             winner = (s8)selected_player;
+            game_state = game_over;
           }
           selected_player = (selected_player + 1) % number_of_players_playing;
           selected_platform = -1;
@@ -343,6 +349,7 @@ s32 main() {
           if(cast_u8(platform_position.x) == 3
           && cast_u8(platform_position.y) == 3) {
             winner = (s8)selected_player;
+            game_state = game_over;
           }
           selected_player = (selected_player + 1) % number_of_players_playing;
           selected_platform = -1;
@@ -440,15 +447,16 @@ s32 main() {
     // }
 
     if(winner != -1) {
-      const char* text = TextFormat("Congrats player %d!", (selected_player + 1));
+      const char* text = TextFormat("Congrats player %d!", winner + 1);
       Vector2 text_size = measure_text(text);
       Vector2 text_position = {screen_center.x - text_size.x/2, screen_center.y};
       // draw_text(text, (Vector2){text_position.x - 5, text_position.y}, WHITE);
       // draw_text(text, (Vector2){text_position.x + 5, text_position.y}, WHITE);
       // draw_text(text, (Vector2){text_position.x, text_position.y - 5}, WHITE);
-      draw_text(text, text_position + 5, WHITE);
+      draw_text(text, text_position + 3, BLACK);
+      // draw_text(text, text_position - 5, BLACK);
 
-      draw_text(text, text_position, BLACK);
+      draw_text(text, text_position, ORANGE);
     }
 
     EndDrawing();
