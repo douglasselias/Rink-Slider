@@ -3,6 +3,40 @@ u8 PLATFORM = 2;
 
 u8 board[7][7] = {};
 
+Vector2 initial_platform_positions[12] = {
+  // Top left
+  {0,0},
+  // {1,0},
+  // {0,1},
+
+  {4,0},
+  {3,4},
+
+  // {1,1},
+  // Top right
+  {6,0},
+  {5,0},
+  {6,1},
+  // Bottom left
+  {0,6},
+  {0,5},
+  {1,6},
+  // Bottom right
+  {6,6},
+  {5,6},
+  {6,5},
+};
+
+Vector2 platform_positions[12] = {};
+
+void reset_platform_positions() {
+  for(u8 i = 0; i < 12; i++) {
+    platform_positions[i] = initial_platform_positions[i];
+  }
+}
+
+s8 selected_platform = -1;
+
 #define number_of_players 4
 Vector2 initial_positions[number_of_players] = {
   // Top left
@@ -14,7 +48,6 @@ Vector2 initial_positions[number_of_players] = {
   // Bottom left
   {0,6},
 };
-
 Vector2 player_positions[number_of_players] = {};
 
 void reset_player_positions() {

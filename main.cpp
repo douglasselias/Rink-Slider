@@ -27,16 +27,24 @@ s32 main() {
   init_font();
   init_font_title();
 
-  // Music bgm = LoadMusicStream("sfx/8bit_bossa.mp3");
-  Music bgm = LoadMusicStream("sfx/peachtea_somewhere_in_the_elevator.ogg");
-  SetMasterVolume(0.4f);
+  Music bgm = LoadMusicStream("sfx/8bit_bossa.mp3");
+  // Music bgm = LoadMusicStream("sfx/peachtea_somewhere_in_the_elevator.ogg");
+  // SetMasterVolume(0.4f);
   PlayMusicStream(bgm);
 
+  Sound win_sfx = LoadSound("sfx/win.wav");
+  SetSoundVolume(win_sfx, 2.0);
+
   Sound move_sfx = LoadSound("sfx/select.ogg");
+  Sound move_player_sfx = LoadSound("sfx/drop_004.ogg");
 
   Sound select_sfx = LoadSound("sfx/confirmation.ogg");
-  Sound sliding_sfx = LoadSound("sfx/sliding.ogg");
-  SetSoundVolume(sliding_sfx, 1);
+  Sound sliding_sfx = LoadSound("sfx/maximize_008.ogg");
+  SetSoundVolume(sliding_sfx, 1.4);
+  // SetSoundPitch(sliding_sfx, 0.1);
+
+  Sound select_platform_sfx = LoadSound("sfx/switch_002.ogg");
+  SetSoundVolume(select_platform_sfx, 0.5);
 
   Texture2D board_texture = LoadTexture("gfx/board.png");
   Vector2 board_position = {
@@ -49,31 +57,6 @@ s32 main() {
 
   Texture2D platform_texture = LoadTexture("gfx/platform.png");
   u8 move_distance = cast_u8(platform_texture.width) * board_texture_scale;
-
-  Vector2 platform_positions[12] = {
-    // Top left
-    {0,0},
-    // {1,0},
-    // {0,1},
-
-    {4,0},
-    {3,4},
-
-    // {1,1},
-    // Top right
-    {6,0},
-    {5,0},
-    {6,1},
-    // Bottom left
-    {0,6},
-    {0,5},
-    {1,6},
-    // Bottom right
-    {6,6},
-    {5,6},
-    {6,5},
-  };
-  s8 selected_platform = -1;
 
   Texture2D platform_frame_texture = LoadTexture("gfx/platform_frame.png");
   update_board_positions(platform_positions);
@@ -109,6 +92,8 @@ s32 main() {
 
   u8 number_of_players_playing = 2;
 
+  reset_platform_positions();
+  update_board_positions(platform_positions);
   reset_player_positions();
 
   Shader player_outline = LoadShader(0, "shaders/outline.fs");
@@ -116,53 +101,90 @@ s32 main() {
   f32 texture_size_value[2] = { (f32)player_textures[0].width, (f32)player_textures[0].height };
   SetShaderValue(player_outline, texture_size_location, texture_size_value, SHADER_UNIFORM_VEC2);
 
-  // MARK: game loop
+  // MARK: GAME LOOP
   while (!WindowShouldClose()) {
     f32 dt = GetFrameTime();
-    // UpdateMusicStream(bgm);
+    if(winner == -1)
+      UpdateMusicStream(bgm);
 
-    if(IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
-      game_state = main_menu;
+    if((IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE))) {
+      switch(game_state) {
+        case main_menu: {
+          /// @todo: merge with code below
+          PlaySound(select_sfx);
+          if(menu_option_index == 0) {
+            menu_option_2_position = menu_option_2_position_default;
+            /// @todo: is hovering necessary here?
+            hovering_2_players = false;
+            scale_2 = 1;
+            number_of_players_playing = 2;
+            game_state = playing;
+          } else if(menu_option_index == 1) {
+            menu_option_3_position = menu_option_3_position_default;
+            hovering_3_players = false;
+            scale_3 = 1;
+            number_of_players_playing = 3;
+            game_state = playing;
+          } else if(menu_option_index == 2) {
+            menu_option_4_position = menu_option_4_position_default;
+            hovering_4_players = false;
+            scale_4 = 1;
+            number_of_players_playing = 4;
+            game_state = playing;
+          }
+          break;
+        }
+        case playing: {
+          if(FloatEquals(platform_final_position.x, -1)
+          && FloatEquals(platform_final_position.y, -1)) {
+            if(selected_platform != -1) {
+              selected_platform = -1;
+              PlaySound(select_platform_sfx);
+            } else {
+              s8 index = 0;
+              for(auto platform_position : platform_positions) {
+                if(cast_u8(player_positions[selected_player].x) == cast_u8(platform_position.x)
+                && cast_u8(player_positions[selected_player].y) == cast_u8(platform_position.y)) {
+                  selected_platform = index;
+                  PlaySound(select_platform_sfx);
+                  break;
+                }
+                index++;
+              }
+            }
+          }
+          break;
+        }
+        case game_over: {
+          game_state = main_menu;
+          winner = -1;
+          selected_player = 0;
+          reset_platform_positions();
+          reset_player_positions();
+          clear_board_positions();
+          update_board_positions(platform_positions);
+          update_board_players(player_positions, number_of_players_playing);
+          break;
+        }
+      }
     }
 
     if(IsKeyPressed(KEY_A) && game_state == main_menu) {
-      menu_option_index = (s8)Clamp(--menu_option_index, 0, 2);
+      if(-1 < menu_option_index - 1) {
+        menu_option_index--;
+        PlaySound(move_sfx);
+      }
     }
 
     if(IsKeyPressed(KEY_D) && game_state == main_menu) {
-      menu_option_index = (s8)Clamp(++menu_option_index, 0, 2);
+      if(menu_option_index + 1 < 3) {
+        menu_option_index++;
+        PlaySound(move_sfx);
+      }
     }
 
     Vector2 mouse_position = GetMousePosition();
     check_mouse_collision_with_menu_options(mouse_position, dt);
-
-    if((IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) && game_state == main_menu) {
-      /// @todo: merge with code below
-      PlaySound(select_sfx);
-      if(menu_option_index == 0) {
-        menu_option_2_position = menu_option_2_position_default;
-        /// @todo: is hovering necessary here?
-        hovering_2_players = false;
-        // menu_option_index = 0;
-        scale_2 = 1;
-        number_of_players_playing = 2;
-        game_state = playing;
-      } else if(menu_option_index == 1) {
-        menu_option_3_position = menu_option_3_position_default;
-        hovering_3_players = false;
-        // menu_option_index = 1;
-        scale_3 = 1;
-        number_of_players_playing = 3;
-        game_state = playing;
-      } else if(menu_option_index == 2) {
-        menu_option_4_position = menu_option_4_position_default;
-        hovering_4_players = false;
-        // menu_option_index = 2;
-        scale_4 = 1;
-        number_of_players_playing = 4;
-        game_state = playing;
-      }
-    }
 
     if(IsMouseButtonPressed(0)
     && game_state == main_menu
@@ -203,7 +225,7 @@ s32 main() {
         if(0 <= y && (board[y][x] & PLATFORM) && !(board[y][x] & PLAYER)) {
           player_positions[selected_player].y--;
           update_board_players(player_positions, number_of_players_playing);
-          PlaySound(move_sfx);
+          PlaySound(move_player_sfx);
         }
       } else {
         if(0 <= y && board[y][x] == false) {
@@ -227,7 +249,7 @@ s32 main() {
         if(y < 7 && (board[y][x] & PLATFORM) && !(board[y][x] & PLAYER)) {
           player_positions[selected_player].y++;
           update_board_players(player_positions, number_of_players_playing);
-          PlaySound(move_sfx);
+          PlaySound(move_player_sfx);
         }
       } else {
         if(y < 7 && board[y][x] == false) {
@@ -251,7 +273,7 @@ s32 main() {
         if(0 <= x && (board[y][x] & PLATFORM) && !(board[y][x] & PLAYER)) {
           player_positions[selected_player].x--;
           update_board_players(player_positions, number_of_players_playing);
-          PlaySound(move_sfx);
+          PlaySound(move_player_sfx);
         }
       } else {
         if(0 <= x && board[y][x] == false) {
@@ -275,7 +297,7 @@ s32 main() {
         if(x < 7 && (board[y][x] & PLATFORM) && !(board[y][x] & PLAYER)) {
           player_positions[selected_player].x++;
           update_board_players(player_positions, number_of_players_playing);
-          PlaySound(move_sfx);
+          PlaySound(move_player_sfx);
         }
       } else {
         if(x < 7 && board[y][x] == false) {
@@ -284,26 +306,6 @@ s32 main() {
           }
           platform_final_position.x = x - 1;
           PlaySound(sliding_sfx);
-        }
-      }
-    }
-
-/// @todo: is selecting the platform after game init
-    if(IsKeyPressed(KEY_SPACE)
-    && game_state == playing
-    && FloatEquals(platform_final_position.x, -1)
-    && FloatEquals(platform_final_position.y, -1)) {
-      if(selected_platform != -1) {
-        selected_platform = -1;
-      } else {
-        s8 index = 0;
-        for(auto platform_position : platform_positions) {
-          if(cast_u8(player_positions[selected_player].x) == cast_u8(platform_position.x)
-          && cast_u8(player_positions[selected_player].y) == cast_u8(platform_position.y)) {
-            selected_platform = index;
-            break;
-          }
-          index++;
         }
       }
     }
@@ -324,6 +326,7 @@ s32 main() {
           && cast_u8(platform_position.y) == 3) {
             winner = (s8)selected_player;
             game_state = game_over;
+            PlaySound(win_sfx);
           }
           selected_player = (selected_player + 1) % number_of_players_playing;
           selected_platform = -1;
@@ -350,6 +353,7 @@ s32 main() {
           && cast_u8(platform_position.y) == 3) {
             winner = (s8)selected_player;
             game_state = game_over;
+            PlaySound(win_sfx);
           }
           selected_player = (selected_player + 1) % number_of_players_playing;
           selected_platform = -1;
@@ -368,8 +372,6 @@ s32 main() {
       animation_current_time = 0;
     }
 
-    // if(IsKeyPressed(KEY_A)) {previous_color();}
-    // if(IsKeyPressed(KEY_D)) {next_color();}
     time += dt * bg_movement_speed;
     SetShaderValue(bg_color_fs, time_location_shader, &time, SHADER_UNIFORM_FLOAT);
 
@@ -378,7 +380,6 @@ s32 main() {
 
     u64 bg_column_chunk = (u64)screen_width  / (u64)bg_texture.width;
     u64 bg_row_chunk    = (u64)screen_height / (u64)bg_texture.height;
-    // log("column", bg_column_chunk);
 
     BeginShaderMode(bg_color_fs);
     for(u64 i = 0; i < bg_column_chunk; i++) {
@@ -387,9 +388,8 @@ s32 main() {
       }
     }
     EndShaderMode();
-    // draw_text(TextFormat("Color %d", palette_index), {5, 5}, MAGENTA);
 
-    if(game_state == playing) {
+    if(game_state == playing || game_state == game_over) {
       // draw_text(TextFormat("Player turn %d", selected_player + 1), {5, 5}, GOLD);
       draw_texture(board_texture, board_position, board_texture_scale);
       for(auto platform_position : platform_positions) {
@@ -426,7 +426,6 @@ s32 main() {
       draw_menu_options(dt);
     }
 
-
     // u8 y = 0;
     // for(auto &row : board) {
     //   u8 x = 0;
@@ -450,13 +449,14 @@ s32 main() {
       const char* text = TextFormat("Congrats player %d!", winner + 1);
       Vector2 text_size = measure_text(text);
       Vector2 text_position = {screen_center.x - text_size.x/2, screen_center.y};
-      // draw_text(text, (Vector2){text_position.x - 5, text_position.y}, WHITE);
-      // draw_text(text, (Vector2){text_position.x + 5, text_position.y}, WHITE);
-      // draw_text(text, (Vector2){text_position.x, text_position.y - 5}, WHITE);
       draw_text(text, text_position + 3, BLACK);
-      // draw_text(text, text_position - 5, BLACK);
-
-      draw_text(text, text_position, ORANGE);
+      Color player_color = ORANGE;
+      switch(winner) {
+        case 1: player_color = GREEN;  break;
+        case 2: player_color = BLUE;   break;
+        case 3: player_color = PURPLE; break;
+      }
+      draw_text(text, text_position, player_color);
     }
 
     EndDrawing();
