@@ -110,6 +110,11 @@ s32 main() {
 
   reset_player_positions();
 
+  Shader player_outline = LoadShader(0, "shaders/outline.fs");
+  s32 texture_size_location = GetShaderLocation(player_outline, "textureSize");
+  f32 texture_size_value[2] = { (f32)player_textures[0].width, (f32)player_textures[0].height };
+  SetShaderValue(player_outline, texture_size_location, texture_size_value, SHADER_UNIFORM_VEC2);
+
   // MARK: game loop
   while (!WindowShouldClose()) {
     f32 dt = GetFrameTime();
@@ -359,7 +364,7 @@ s32 main() {
     // if(IsKeyPressed(KEY_A)) {previous_color();}
     // if(IsKeyPressed(KEY_D)) {next_color();}
     time += dt * bg_movement_speed;
-    SetShaderValue(outline_fs, time_location_shader, &time, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(bg_color_fs, time_location_shader, &time, SHADER_UNIFORM_FLOAT);
 
     BeginDrawing();
     ClearBackground(BLACK);
@@ -368,7 +373,7 @@ s32 main() {
     u64 bg_row_chunk    = (u64)screen_height / (u64)bg_texture.height;
     // log("column", bg_column_chunk);
 
-    BeginShaderMode(outline_fs);
+    BeginShaderMode(bg_color_fs);
     for(u64 i = 0; i < bg_column_chunk; i++) {
       for(u64 j = 0; j <= bg_row_chunk; j++) {
         DrawTextureV(bg_texture, {(f32)i*bg_texture.width,(f32)j*bg_texture.height}, palette[palette_index]);
@@ -376,9 +381,9 @@ s32 main() {
     }
     EndShaderMode();
     // draw_text(TextFormat("Color %d", palette_index), {5, 5}, MAGENTA);
-    // draw_text(TextFormat("Game State %d", game_state), {5, 5}, MAGENTA);
 
     if(game_state == playing) {
+      // draw_text(TextFormat("Player turn %d", selected_player + 1), {5, 5}, GOLD);
       draw_texture(board_texture, board_position, board_texture_scale);
       for(auto platform_position : platform_positions) {
         Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, platform_position, move_distance);
@@ -398,7 +403,13 @@ s32 main() {
       u8 player_index = 0;
       for(u8 i = 0; i < number_of_players_playing; i++) {
         Vector2 player_position_screen = convert_board_position_to_screen_position(board_top_left + player_offset, player_positions[i], move_distance);
+        if(selected_player == i) {
+          BeginShaderMode(player_outline);
+        }
         DrawTextureV(player_textures[player_index++], player_position_screen, WHITE);
+        if(selected_player == i) {
+          EndShaderMode();
+        }
       }
     } else if(game_state == main_menu) {
       Vector2 text_size = measure_text_title(game_title);

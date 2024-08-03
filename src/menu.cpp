@@ -17,15 +17,15 @@ Vector2 menu_option_3_position = {};
 Vector2 menu_option_4_position = {};
 
 // Shader move_vs;
-Shader outline_fs;
+Shader bg_color_fs;
 s32 time_location_shader;
 
 s8 menu_option_index = 0;
 
 void init_menu_options() {
   /// @todo: this belongs to bg texture
-  outline_fs = LoadShader("shaders/move.vs", "shaders/outline.fs");
-  time_location_shader = GetShaderLocation(outline_fs, "time");
+  bg_color_fs = LoadShader("shaders/move.vs", "shaders/bg_color.fs");
+  time_location_shader = GetShaderLocation(bg_color_fs, "time");
 
   menu_option_2_players = LoadTexture("gfx/players_2.png");
   SetTextureFilter(menu_option_2_players, TEXTURE_FILTER_BILINEAR);
