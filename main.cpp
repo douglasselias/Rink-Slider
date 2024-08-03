@@ -14,10 +14,12 @@
 #include "src/font.cpp"
 #include "src/board.cpp"
 #include "src/menu.cpp"
+#include "src/pause_menu.cpp"
 
 enum Game_State {
   main_menu,
   playing,
+  paused,
   game_over,
 };
 
@@ -51,6 +53,7 @@ s32 main() {
     screen_center.x - board_texture.width,
     screen_center.y - board_texture.height,
   };
+  log("H", board_texture.height);
   u8 board_texture_scale = 2;
   u8 board_border_thickness = 5;
   Vector2 board_top_left = board_position + board_border_thickness * board_texture_scale;
@@ -107,7 +110,7 @@ s32 main() {
     if(winner == -1)
       UpdateMusicStream(bgm);
 
-    if((IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE))) {
+    if(IsKeyPressed(KEY_SPACE)) {
       switch(game_state) {
         case main_menu: {
           /// @todo: merge with code below
@@ -155,7 +158,29 @@ s32 main() {
           }
           break;
         }
+        case paused: {
+          switch(pause_menu_option_index) {
+            case 0: game_state = playing; PlaySound(select_sfx); break;
+            case 1: {
+              PlaySound(select_sfx);
+              pause_menu_option_index = 0;
+              /// @todo: extract this into a fn, same for the code below
+              game_state = main_menu;
+              winner = -1;
+              selected_player = 0;
+              reset_platform_positions();
+              reset_player_positions();
+              clear_board_positions();
+              update_board_positions(platform_positions);
+              update_board_players(player_positions, number_of_players_playing);
+              break;
+            }
+            case 2: CloseWindow(); break;
+          }
+          break;
+        }
         case game_over: {
+          // pause_menu_option_index = 0;
           game_state = main_menu;
           winner = -1;
           selected_player = 0;
@@ -166,6 +191,33 @@ s32 main() {
           update_board_players(player_positions, number_of_players_playing);
           break;
         }
+      }
+    }
+
+    if(IsKeyPressed(KEY_ENTER)) {
+      switch(game_state) {
+        case playing: {
+          game_state = paused;
+          break;
+        }
+        case paused: {
+          game_state = playing;
+          break;
+        }
+      }
+    }
+
+    if(IsKeyPressed(KEY_W) && game_state == paused) {
+      if(-1 < pause_menu_option_index - 1) {
+        pause_menu_option_index--;
+        PlaySound(move_sfx);
+      }
+    }
+
+    if(IsKeyPressed(KEY_S) && game_state == paused) {
+      if(pause_menu_option_index + 1 < 3) {
+        pause_menu_option_index++;
+        PlaySound(move_sfx);
       }
     }
 
@@ -389,7 +441,7 @@ s32 main() {
     }
     EndShaderMode();
 
-    if(game_state == playing || game_state == game_over) {
+    if(game_state == playing || game_state == game_over || game_state == paused) {
       // draw_text(TextFormat("Player turn %d", selected_player + 1), {5, 5}, GOLD);
       draw_texture(board_texture, board_position, board_texture_scale);
       for(auto platform_position : platform_positions) {
@@ -421,9 +473,13 @@ s32 main() {
     } else if(game_state == main_menu) {
       Vector2 text_size = measure_text_title(game_title);
       Vector2 text_position = {screen_center.x - text_size.x/2, text_size.y};
-      draw_text_title(game_title, text_position + (Vector2){6, 6}, BLACK);
+      draw_text_title(game_title, text_position + 6, BLACK);
       draw_text_title(game_title, text_position, GOLD);
       draw_menu_options(dt);
+    }
+
+    if(game_state == paused) {
+      draw_pause_menu();
     }
 
     // u8 y = 0;
