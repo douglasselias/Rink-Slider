@@ -106,6 +106,9 @@ s32 main() {
   f32 texture_size_value[2] = { (f32)player_textures[0].width, (f32)player_textures[0].height };
   SetShaderValue(player_outline, texture_size_location, texture_size_value, SHADER_UNIFORM_VEC2);
 
+  f32 total_transition_timeout = 0.3;
+  f32 transition_timeout = 0;
+
   // MARK: GAME LOOP
   while (!WindowShouldClose()) {
     f32 dt = GetFrameTime();
@@ -124,23 +127,27 @@ s32 main() {
             scale_2 = 1;
             number_of_players_playing = 2;
             game_state = ai_menu;
+            transition_timeout = total_transition_timeout;
           } else if(menu_option_index == 1) {
             menu_option_3_position = menu_option_3_position_default;
             hovering_3_players = false;
             scale_3 = 1;
             number_of_players_playing = 3;
             game_state = ai_menu;
+            transition_timeout = total_transition_timeout;
           } else if(menu_option_index == 2) {
             menu_option_4_position = menu_option_4_position_default;
             hovering_4_players = false;
             scale_4 = 1;
             number_of_players_playing = 4;
             game_state = ai_menu;
+            transition_timeout = total_transition_timeout;
           }
           break;
         }
         case ai_menu: {
           game_state = playing;
+          PlaySound(select_sfx);
           break;
         }
         case playing: {
@@ -288,6 +295,7 @@ s32 main() {
         scale_2 = 1;
         number_of_players_playing = 2;
         game_state = ai_menu;
+        transition_timeout = total_transition_timeout;
       } else if(hovering_3_players) {
         menu_option_3_position = menu_option_3_position_default;
         hovering_3_players = false;
@@ -295,6 +303,7 @@ s32 main() {
         scale_3 = 1;
         number_of_players_playing = 3;
         game_state = ai_menu;
+        transition_timeout = total_transition_timeout;
       } else if(hovering_4_players) {
         menu_option_4_position = menu_option_4_position_default;
         hovering_4_players = false;
@@ -302,6 +311,7 @@ s32 main() {
         scale_4 = 1;
         number_of_players_playing = 4;
         game_state = ai_menu;
+        transition_timeout = total_transition_timeout;
       }
     }
 
@@ -399,6 +409,12 @@ s32 main() {
           PlaySound(sliding_sfx);
         }
       }
+    }
+
+    // MARK: Game Update
+    transition_timeout -= dt;
+    if(transition_timeout < 0) {
+      transition_timeout = 0;
     }
 
     if(selected_platform != -1) {
@@ -509,13 +525,13 @@ s32 main() {
           EndShaderMode();
         }
       }
-    } else if(game_state == main_menu) {
+    } else if(game_state == main_menu || 0 < transition_timeout) {
       Vector2 text_size = measure_text_title(game_title);
       Vector2 text_position = {screen_center.x - text_size.x/2, text_size.y};
       draw_text_title(game_title, text_position + 6, BLACK);
       draw_text_title(game_title, text_position, GOLD);
       draw_menu_options(dt);
-    } else if(game_state == ai_menu) {
+    } else if(game_state == ai_menu && FloatEquals(transition_timeout, 0)) {
       draw_ai_menu();
     }
 
