@@ -15,9 +15,11 @@
 #include "src/board.cpp"
 #include "src/menu.cpp"
 #include "src/pause_menu.cpp"
+#include "src/ai_menu.cpp"
 
 enum Game_State {
   main_menu,
+  ai_menu,
   playing,
   paused,
   game_over,
@@ -42,7 +44,7 @@ s32 main() {
 
   Sound select_sfx = LoadSound("sfx/confirmation.ogg");
   Sound sliding_sfx = LoadSound("sfx/maximize_008.ogg");
-  SetSoundVolume(sliding_sfx, 1.4);
+  SetSoundVolume(sliding_sfx, 1.4f);
   // SetSoundPitch(sliding_sfx, 0.1);
 
   Sound select_platform_sfx = LoadSound("sfx/switch_002.ogg");
@@ -53,7 +55,6 @@ s32 main() {
     screen_center.x - board_texture.width,
     screen_center.y - board_texture.height,
   };
-  log("H", board_texture.height);
   u8 board_texture_scale = 2;
   u8 board_border_thickness = 5;
   Vector2 board_top_left = board_position + board_border_thickness * board_texture_scale;
@@ -62,7 +63,7 @@ s32 main() {
   u8 move_distance = cast_u8(platform_texture.width) * board_texture_scale;
 
   Texture2D platform_frame_texture = LoadTexture("gfx/platform_frame.png");
-  update_board_positions(platform_positions);
+  update_board_positions();
 
   Texture2D player_textures[4] = {};
   const char* player_colors[4] = {"orange", "green", "blue", "purple"};
@@ -82,6 +83,7 @@ s32 main() {
   s8 winner = -1;
 
   init_menu_options();
+  init_ai_menu();
 
   Game_State game_state = main_menu;
 
@@ -93,10 +95,10 @@ s32 main() {
   f32 time = 0;
   f32 bg_movement_speed = 0.1f;
 
-  u8 number_of_players_playing = 2;
+  u8 number_of_players_playing = 4;
 
   reset_platform_positions();
-  update_board_positions(platform_positions);
+  update_board_positions();
   reset_player_positions();
 
   Shader player_outline = LoadShader(0, "shaders/outline.fs");
@@ -121,20 +123,24 @@ s32 main() {
             hovering_2_players = false;
             scale_2 = 1;
             number_of_players_playing = 2;
-            game_state = playing;
+            game_state = ai_menu;
           } else if(menu_option_index == 1) {
             menu_option_3_position = menu_option_3_position_default;
             hovering_3_players = false;
             scale_3 = 1;
             number_of_players_playing = 3;
-            game_state = playing;
+            game_state = ai_menu;
           } else if(menu_option_index == 2) {
             menu_option_4_position = menu_option_4_position_default;
             hovering_4_players = false;
             scale_4 = 1;
             number_of_players_playing = 4;
-            game_state = playing;
+            game_state = ai_menu;
           }
+          break;
+        }
+        case ai_menu: {
+          game_state = playing;
           break;
         }
         case playing: {
@@ -171,7 +177,7 @@ s32 main() {
               reset_platform_positions();
               reset_player_positions();
               clear_board_positions();
-              update_board_positions(platform_positions);
+              update_board_positions();
               update_board_players(player_positions, number_of_players_playing);
               break;
             }
@@ -187,7 +193,7 @@ s32 main() {
           reset_platform_positions();
           reset_player_positions();
           clear_board_positions();
-          update_board_positions(platform_positions);
+          update_board_positions();
           update_board_players(player_positions, number_of_players_playing);
           break;
         }
@@ -203,6 +209,38 @@ s32 main() {
         case paused: {
           game_state = playing;
           break;
+        }
+      }
+    }
+
+    if(IsKeyPressed(KEY_A) && game_state == ai_menu) {
+      if(-1 < number_of_ai_players - 1) {
+        number_of_ai_players--;
+        PlaySound(move_sfx);
+      }
+    }
+
+    if(IsKeyPressed(KEY_D) && game_state == ai_menu) {
+      if(number_of_ai_players + 1 < number_of_players_playing) {
+        number_of_ai_players++;
+        PlaySound(move_sfx);
+      }
+    }
+
+    if(IsMouseButtonPressed(0) && game_state == ai_menu) {
+      if(arrow_left_colliding) {
+        if(-1 < number_of_ai_players - 1) {
+          number_of_ai_players--;
+          PlaySound(move_sfx);
+        }
+      }
+    }
+
+    if(IsMouseButtonPressed(0) && game_state == ai_menu) {
+      if(arrow_right_colliding) {
+        if(number_of_ai_players + 1 < number_of_players_playing) {
+          number_of_ai_players++;
+          PlaySound(move_sfx);
         }
       }
     }
@@ -236,6 +274,7 @@ s32 main() {
     }
 
     Vector2 mouse_position = GetMousePosition();
+    check_mouse_collision_with_arrows(mouse_position);
     check_mouse_collision_with_menu_options(mouse_position, dt);
 
     if(IsMouseButtonPressed(0)
@@ -248,21 +287,21 @@ s32 main() {
         menu_option_index = 0;
         scale_2 = 1;
         number_of_players_playing = 2;
-        game_state = playing;
+        game_state = ai_menu;
       } else if(hovering_3_players) {
         menu_option_3_position = menu_option_3_position_default;
         hovering_3_players = false;
         menu_option_index = 1;
         scale_3 = 1;
         number_of_players_playing = 3;
-        game_state = playing;
+        game_state = ai_menu;
       } else if(hovering_4_players) {
         menu_option_4_position = menu_option_4_position_default;
         hovering_4_players = false;
         menu_option_index = 2;
         scale_4 = 1;
         number_of_players_playing = 4;
-        game_state = playing;
+        game_state = ai_menu;
       }
     }
 
@@ -386,7 +425,7 @@ s32 main() {
 
           /// @todo: simplify this, could set to false when select the platform and then set to true here, with the new position
           clear_board_positions();
-          update_board_positions(platform_positions);
+          update_board_positions();
           update_board_players(player_positions, number_of_players_playing);
         }
 
@@ -413,7 +452,7 @@ s32 main() {
 
           /// @todo: simplify this, could set to false when select the platform and then set to true here, with the new position
           clear_board_positions();
-          update_board_positions(platform_positions);
+          update_board_positions();
           update_board_players(player_positions, number_of_players_playing);
         }
 
@@ -476,6 +515,8 @@ s32 main() {
       draw_text_title(game_title, text_position + 6, BLACK);
       draw_text_title(game_title, text_position, GOLD);
       draw_menu_options(dt);
+    } else if(game_state == ai_menu) {
+      draw_ai_menu();
     }
 
     if(game_state == paused) {
@@ -520,8 +561,20 @@ s32 main() {
 
   /// @todo: not really necessary
   unload_font();
+  unload_font_title();
+
   UnloadTexture(platform_texture);
   UnloadTexture(board_texture);
+  UnloadTexture(arrow_left);
+  UnloadTexture(arrow_right);
+
+  UnloadSound(win_sfx);
+  UnloadSound(move_sfx);
+  UnloadSound(select_sfx);
+  UnloadSound(sliding_sfx);
+  UnloadSound(move_player_sfx);
+  UnloadSound(select_platform_sfx);
+
   UnloadMusicStream(bgm);
 
   CloseWindow();

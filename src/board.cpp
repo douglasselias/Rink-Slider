@@ -62,7 +62,7 @@ void clear_board_positions() {
       board[row][column] = 0;
 }
 
-void update_board_positions(Vector2 platform_positions[12]) {
+void update_board_positions() {
   for(u8 i = 0; i < 12; i++) {
     Vector2 p = platform_positions[i];
     board[cast_u8(p.y)][cast_u8(p.x)] |= PLATFORM;

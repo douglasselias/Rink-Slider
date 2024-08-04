@@ -1,11 +1,3 @@
-void draw_text_centered(const char* text, f32 y, Color color, bool shadow_text = false) {
-  Vector2 text_size = measure_text(text);
-  Vector2 text_position = {screen_center.x - text_size.x/2, y};
-  if(shadow_text)
-    draw_text(text, text_position + 6, BLACK);
-  draw_text(text, text_position, color);
-}
-
 u8 pause_menu_option_index = 0;
 
 void draw_pause_menu() {
@@ -24,7 +16,7 @@ void draw_pause_menu() {
   rect.y      += thickness - gap;
   rect.width  -= thickness - gap;
   rect.height -= thickness - gap;
-  DrawRectangleRoundedLines(rect, roundness, segments, thickness, Fade(GOLD, 0.9));
+  DrawRectangleRoundedLines(rect, roundness, segments, thickness, Fade(GOLD, 0.9f));
 
   const char* text = "Paused";
   Vector2 text_size = measure_text(text);
