@@ -217,6 +217,10 @@ s32 main() {
           game_state = playing;
           break;
         }
+        case main_menu:
+        case ai_menu:
+        case game_over:
+          break;
       }
     }
 
