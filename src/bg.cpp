@@ -8,7 +8,7 @@ void init_bg() {
   SetTextureWrap(bg_texture, TEXTURE_WRAP_REPEAT);
   SetTextureFilter(bg_texture, TEXTURE_FILTER_TRILINEAR);
 
-  bg_color_fs = LoadShader("shaders/move.vs", "shaders/bg_color.fs");
+  bg_color_fs = LoadShader("shaders/bg_move.vs", "shaders/bg_color.fs");
   time_location_shader = GetShaderLocation(bg_color_fs, "time");
 }
 
