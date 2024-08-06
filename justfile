@@ -16,3 +16,7 @@ test:
 
 windows:
   mkdir -p build && x86_64-w64-mingw32-gcc {{windows_flags}} ./build/main.exe main.cpp -I./vendor -L./vendor -lraylib_windows -lwinmm -lgdi32 ./vendor/libraylib_windows.a && sudo wine build/main.exe
+
+icon:
+	windres resource.rc -O coff -o resource.res
+	gcc -o mygame.exe mygame.o resource.res -mwindows
