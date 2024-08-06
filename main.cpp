@@ -16,6 +16,10 @@
 #include "src/menu.cpp"
 #include "src/pause_menu.cpp"
 #include "src/ai_menu.cpp"
+#include "src/bgm.cpp"
+#include "src/sfx.cpp"
+#include "src/players.cpp"
+#include "src/bg.cpp"
 
 enum Game_State {
   main_menu,
@@ -28,83 +32,21 @@ enum Game_State {
 // MARK: main
 s32 main() {
   init_screen();
-  init_font();
   init_font_title();
+  init_font();
+  init_bgm();
+  init_sfx();
+  init_board();
+  init_players();
+  init_menu_options();
+  init_ai_menu();
+  init_bg();
 
-  Music bgm = LoadMusicStream("sfx/8bit_bossa.mp3");
-  // Music bgm = LoadMusicStream("sfx/peachtea_somewhere_in_the_elevator.ogg");
-  // SetMasterVolume(0.4f);
-  PlayMusicStream(bgm);
-
-  Sound win_sfx = LoadSound("sfx/win.wav");
-  SetSoundVolume(win_sfx, 2.0);
-
-  Sound move_sfx = LoadSound("sfx/select.ogg");
-  Sound move_player_sfx = LoadSound("sfx/drop_004.ogg");
-
-  Sound select_sfx = LoadSound("sfx/confirmation.ogg");
-  Sound sliding_sfx = LoadSound("sfx/maximize_008.ogg");
-  SetSoundVolume(sliding_sfx, 1.4f);
-  // SetSoundPitch(sliding_sfx, 0.1);
-
-  Sound select_platform_sfx = LoadSound("sfx/switch_002.ogg");
-  SetSoundVolume(select_platform_sfx, 0.5);
-
-  Texture2D board_texture = LoadTexture("gfx/board.png");
-  Vector2 board_position = {
-    screen_center.x - board_texture.width,
-    screen_center.y - board_texture.height,
-  };
-  u8 board_texture_scale = 2;
-  u8 board_border_thickness = 5;
-  Vector2 board_top_left = board_position + board_border_thickness * board_texture_scale;
-
-  Texture2D platform_texture = LoadTexture("gfx/platform.png");
-  u8 move_distance = cast_u8(platform_texture.width) * board_texture_scale;
-
-  Texture2D platform_frame_texture = LoadTexture("gfx/platform_frame.png");
-  update_board_positions();
-
-  Texture2D player_textures[4] = {};
-  const char* player_colors[4] = {"orange", "green", "blue", "purple"};
-  u8 player_color_index = 0;
-  for(auto &player_texture : player_textures) {
-    player_texture = LoadTexture(TextFormat("gfx/player_%s.png", player_colors[player_color_index++]));
-  }
-
-  Vector2 player_offset = {(f32)player_textures[0].width / 4, 0};
-  u8 selected_player = 0;
-
-  Vector2 platform_final_position = {-1,-1};
+  Game_State game_state = main_menu;
+  u8 number_of_players_playing = 4;
 
   f32 animation_current_time = 0;
   f32 animation_duration = 1;
-
-  s8 winner = -1;
-
-  init_menu_options();
-  init_ai_menu();
-
-  Game_State game_state = main_menu;
-
-  Texture2D bg_texture = LoadTexture("gfx/bg.png");
-  GenTextureMipmaps(&bg_texture);
-  SetTextureWrap(bg_texture, TEXTURE_WRAP_REPEAT);
-  SetTextureFilter(bg_texture, TEXTURE_FILTER_TRILINEAR);
-
-  f32 time = 0;
-  f32 bg_movement_speed = 0.1f;
-
-  u8 number_of_players_playing = 4;
-
-  reset_platform_positions();
-  update_board_positions();
-  reset_player_positions();
-
-  Shader player_outline = LoadShader(0, "shaders/outline.fs");
-  s32 texture_size_location = GetShaderLocation(player_outline, "textureSize");
-  f32 texture_size_value[2] = { (f32)player_textures[0].width, (f32)player_textures[0].height };
-  SetShaderValue(player_outline, texture_size_location, texture_size_value, SHADER_UNIFORM_VEC2);
 
   f32 total_transition_timeout = 0.3f;
   f32 transition_timeout = 0;
@@ -112,8 +54,8 @@ s32 main() {
   // MARK: GAME LOOP
   while (!WindowShouldClose()) {
     f32 dt = GetFrameTime();
-    if(winner == -1)
-      UpdateMusicStream(bgm);
+
+    if(winner == -1) UpdateMusicStream(bgm);
 
     if(IsKeyPressed(KEY_SPACE)) {
       switch(game_state) {
@@ -504,7 +446,7 @@ s32 main() {
       // draw_text(TextFormat("Player turn %d", selected_player + 1), {5, 5}, GOLD);
       draw_texture(board_texture, board_position, board_texture_scale);
       for(auto platform_position : platform_positions) {
-        Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, platform_position, move_distance);
+        Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, platform_position);
         draw_texture(platform_texture, screen_position, board_texture_scale);
 
         // if(board[cast_u8(platform_position.y)][cast_u8(platform_position.x)]) {
@@ -513,21 +455,17 @@ s32 main() {
       }
 
       if(selected_platform != -1) {
-        Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, platform_positions[selected_platform], move_distance);
+        Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, platform_positions[selected_platform]);
         f32 platform_frame_texture_scale = 1.5;
         draw_texture(platform_frame_texture, screen_position, platform_frame_texture_scale);
       }
 
       u8 player_index = 0;
       for(u8 i = 0; i < number_of_players_playing; i++) {
-        Vector2 player_position_screen = convert_board_position_to_screen_position(board_top_left + player_offset, player_positions[i], move_distance);
-        if(selected_player == i) {
-          BeginShaderMode(player_outline);
-        }
+        Vector2 player_position_screen = convert_board_position_to_screen_position(board_top_left + player_offset, player_positions[i]);
+        if(selected_player == i) BeginShaderMode(player_outline);
         DrawTextureV(player_textures[player_index++], player_position_screen, WHITE);
-        if(selected_player == i) {
-          EndShaderMode();
-        }
+        if(selected_player == i) EndShaderMode();
       }
     } else if(game_state == main_menu || 0 < transition_timeout) {
       Vector2 text_size = measure_text_title(game_title);
@@ -547,7 +485,7 @@ s32 main() {
     // for(auto &row : board) {
     //   u8 x = 0;
     //   for(auto column : row) {
-    //     Vector2 center = convert_board_position_to_screen_position(board_top_left, (Vector2){(f32)0.5+(f32)1*x,(f32)0.5+y*1}, move_distance);
+    //     Vector2 center = convert_board_position_to_screen_position(board_top_left, (Vector2){(f32)0.5+(f32)1*x,(f32)0.5+y*1});
     //     if(column & PLATFORM) {
     //       DrawCircleV(center, 15, LIME);
     //     }
@@ -580,11 +518,18 @@ s32 main() {
   }
 
   /// @todo: not really necessary
-  unload_font();
-  unload_font_title();
+  UnloadFont(font);
+  UnloadFont(font_title);
 
-  UnloadTexture(platform_texture);
+  UnloadShader(player_outline);
+
+  for(auto player_texture : player_textures) {
+    UnloadTexture(player_texture);
+  }
+
   UnloadTexture(board_texture);
+  UnloadTexture(platform_texture);
+  UnloadTexture(platform_frame_texture);
   UnloadTexture(arrow_left);
   UnloadTexture(arrow_right);
 

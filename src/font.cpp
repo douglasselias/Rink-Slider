@@ -22,7 +22,12 @@ void init_font_title() {
 }
 
 /// @todo: maybe add a string struct? or maybe find a way to not need the const keyword
-Vector2 measure_text(const char* text) {
+struct String {
+  const char* text;
+  u64 size;
+};
+typedef const char* cstr;
+Vector2 measure_text(cstr text) {
   return MeasureTextEx(font, text, (f32)font_size, font_spacing);
 }
 
@@ -44,14 +49,4 @@ void draw_text_centered(const char* text, f32 y, Color color, bool shadow_text =
   if(shadow_text)
     draw_text(text, text_position + 6, BLACK);
   draw_text(text, text_position, color);
-}
-
-/// @todo: not really necessary
-void unload_font() {
-  UnloadFont(font);
-}
-
-/// @todo: not really necessary
-void unload_font_title() {
-  UnloadFont(font_title);
 }

@@ -28,6 +28,18 @@ Vector2 initial_platform_positions[12] = {
 };
 
 Vector2 platform_positions[12] = {};
+Vector2 platform_final_position = {-1,-1};
+s8 selected_platform = -1;
+
+Texture2D board_texture;
+Vector2 board_position;
+u8 board_texture_scale = 2;
+u8 board_border_thickness = 5;
+Vector2 board_top_left;
+
+Texture2D platform_texture;
+Texture2D platform_frame_texture;
+u8 move_distance;
 
 void reset_platform_positions() {
   for(u8 i = 0; i < 12; i++) {
@@ -35,38 +47,34 @@ void reset_platform_positions() {
   }
 }
 
-s8 selected_platform = -1;
-
-#define number_of_players 4
-Vector2 initial_positions[number_of_players] = {
-  // Top left
-  {0,0},
-  // Bottom right
-  {6,6},
-  // Top right
-  {6,0},
-  // Bottom left
-  {0,6},
-};
-Vector2 player_positions[number_of_players] = {};
-
-void reset_player_positions() {
-  for(u8 i = 0; i < number_of_players; i++) {
-    player_positions[i] = initial_positions[i];
+void update_board_positions() {
+  for(u8 i = 0; i < 12; i++) {
+    Vector2 p = platform_positions[i];
+    board[cast_u8(p.y)][cast_u8(p.x)] |= PLATFORM;
   }
+}
+
+void init_board() {
+  platform_frame_texture = LoadTexture("gfx/platform_frame.png");
+  board_texture = LoadTexture("gfx/board.png");
+  board_position = {
+    screen_center.x - (f32)board_texture.width,
+    screen_center.y - (f32)board_texture.height,
+  };
+  board_top_left = board_position + board_border_thickness * board_texture_scale;
+  platform_texture = LoadTexture("gfx/platform.png");
+  move_distance = cast_u8(platform_texture.width) * board_texture_scale;
+
+/// @todo:  i think is not necessary the line below
+  // update_board_positions();
+  reset_platform_positions();
+  update_board_positions();
 }
 
 void clear_board_positions() {
   for(u8 row = 0; row < 7; row++)
     for(u8 column = 0; column < 7; column++)
       board[row][column] = 0;
-}
-
-void update_board_positions() {
-  for(u8 i = 0; i < 12; i++) {
-    Vector2 p = platform_positions[i];
-    board[cast_u8(p.y)][cast_u8(p.x)] |= PLATFORM;
-  }
 }
 
 void update_board_players(Vector2 positions[], u8 n_of_player) {
@@ -80,6 +88,6 @@ void update_board_players(Vector2 positions[], u8 n_of_player) {
   }
 }
 
-Vector2 convert_board_position_to_screen_position(Vector2 offset, Vector2 position, u8 move_distance) {
+Vector2 convert_board_position_to_screen_position(Vector2 offset, Vector2 position) {
   return offset + position * move_distance;
 }
