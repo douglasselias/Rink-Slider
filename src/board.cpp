@@ -68,8 +68,6 @@ void init_board() {
   platform_texture = LoadTexture("gfx/platform.png");
   move_distance = cast_u8(platform_texture.width) * board_texture_scale;
 
-/// @todo:  i think is not necessary the line below
-  // update_board_positions();
   reset_platform_positions();
   update_board_positions();
 }
@@ -93,4 +91,21 @@ void update_board_players(Vector2 positions[], u8 n_of_player) {
 
 Vector2 convert_board_position_to_screen_position(Vector2 offset, Vector2 position) {
   return offset + position * move_distance;
+}
+
+void draw_board() {
+  draw_texture(board_texture, board_position, board_texture_scale);
+}
+
+void draw_platforms() {
+  for(auto platform_position : platform_positions) {
+    Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, platform_position);
+    draw_texture(platform_texture, screen_position, board_texture_scale);
+  }
+}
+
+void draw_platform_frame() {
+  Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, platform_positions[selected_platform]);
+  f32 platform_frame_texture_scale = 1.5;
+  draw_texture(platform_frame_texture, screen_position, platform_frame_texture_scale);
 }

@@ -21,13 +21,7 @@ void init_font_title() {
   UnloadCodepoints(codepoints);
 }
 
-/// @todo: maybe add a string struct? or maybe find a way to not need the const keyword
-struct String {
-  const char* text;
-  u64 size;
-};
-typedef const char* cstr;
-Vector2 measure_text(cstr text) {
+Vector2 measure_text(const char* text) {
   return MeasureTextEx(font, text, (f32)font_size, font_spacing);
 }
 

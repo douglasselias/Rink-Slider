@@ -40,3 +40,26 @@ void init_players() {
   f32 texture_size_value[2] = { (f32)player_textures[0].width, (f32)player_textures[0].height };
   SetShaderValue(player_outline, texture_size_location, texture_size_value, SHADER_UNIFORM_VEC2);
 }
+
+void draw_players(u8 number_of_players_playing) {
+  for(u8 i = 0; i < number_of_players_playing; i++) {
+    Vector2 player_position_screen = convert_board_position_to_screen_position(board_top_left + player_offset, player_positions[i]);
+    if(selected_player == i) BeginShaderMode(player_outline);
+    DrawTextureV(player_textures[i], player_position_screen, WHITE);
+    if(selected_player == i) EndShaderMode();
+  }
+}
+
+void draw_winner_text() {
+  const char* text = TextFormat("Congrats player %d!", winner + 1);
+  Vector2 text_size = measure_text(text);
+  Vector2 text_position = {screen_center.x - text_size.x/2, screen_center.y};
+  draw_text(text, text_position + 3, BLACK);
+  Color player_color = ORANGE;
+  switch(winner) {
+    case 1: player_color = GREEN;  break;
+    case 2: player_color = BLUE;   break;
+    case 3: player_color = PURPLE; break;
+  }
+  draw_text(text, text_position, player_color);
+}

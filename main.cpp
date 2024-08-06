@@ -2,9 +2,6 @@
 #include "raylib.h"
 #include "raymath.h"
 
-// #define RAYGUI_IMPLEMENTATION
-// #include "vendor/raygui.h"
-
 #include "std/types.cpp"
 #include "std/log.cpp"
 #include "std/macros.cpp"
@@ -29,7 +26,53 @@ enum Game_State {
   game_over,
 };
 
-// MARK: MAIN
+Game_State game_state = main_menu;
+u8 number_of_players_playing = 4;
+f32 total_transition_timeout = 0.3f;
+f32 transition_timeout = 0;
+
+void reset_game() {
+  pause_menu_option_index = 0;
+  game_state = main_menu;
+  winner = -1;
+  selected_player = 0;
+  selected_platform = -1;
+  reset_platform_positions();
+  reset_player_positions();
+  clear_board_positions();
+  update_board_positions();
+  update_board_players(player_positions, number_of_players_playing);
+}
+
+void select_option2() {
+  menu_option_2_position = menu_option_2_position_default;
+  hovering_2_players = false;
+  menu_option_index = 0;
+  scale_2 = 1;
+  number_of_players_playing = 2;
+  game_state = ai_menu;
+  transition_timeout = total_transition_timeout;
+}
+
+void select_option3() {
+  menu_option_3_position = menu_option_3_position_default;
+  hovering_3_players = false;
+  scale_3 = 1;
+  number_of_players_playing = 3;
+  game_state = ai_menu;
+  transition_timeout = total_transition_timeout;
+}
+
+void select_option4() {
+  menu_option_4_position = menu_option_4_position_default;
+  hovering_4_players = false;
+  scale_4 = 1;
+  number_of_players_playing = 4;
+  game_state = ai_menu;
+  transition_timeout = total_transition_timeout;
+}
+
+
 s32 main() {
   init_screen();
   init_font_title();
@@ -42,12 +85,6 @@ s32 main() {
   init_ai_menu();
   init_bg();
 
-  Game_State game_state = main_menu;
-  u8 number_of_players_playing = 4;
-
-  f32 total_transition_timeout = 0.3f;
-  f32 transition_timeout = 0;
-
   // MARK: LOOP
   while (!WindowShouldClose()) {
     f32 dt = GetFrameTime();
@@ -57,30 +94,13 @@ s32 main() {
     if(IsKeyPressed(KEY_SPACE)) {
       switch(game_state) {
         case main_menu: {
-          /// @todo: merge with code below
           PlaySound(select_sfx);
           if(menu_option_index == 0) {
-            menu_option_2_position = menu_option_2_position_default;
-            /// @todo: is hovering necessary here?
-            hovering_2_players = false;
-            scale_2 = 1;
-            number_of_players_playing = 2;
-            game_state = ai_menu;
-            transition_timeout = total_transition_timeout;
+            select_option2();
           } else if(menu_option_index == 1) {
-            menu_option_3_position = menu_option_3_position_default;
-            hovering_3_players = false;
-            scale_3 = 1;
-            number_of_players_playing = 3;
-            game_state = ai_menu;
-            transition_timeout = total_transition_timeout;
+            select_option3();
           } else if(menu_option_index == 2) {
-            menu_option_4_position = menu_option_4_position_default;
-            hovering_4_players = false;
-            scale_4 = 1;
-            number_of_players_playing = 4;
-            game_state = ai_menu;
-            transition_timeout = total_transition_timeout;
+            select_option4();
           }
           break;
         }
@@ -115,16 +135,7 @@ s32 main() {
             case 0: game_state = playing; PlaySound(select_sfx); break;
             case 1: {
               PlaySound(select_sfx);
-              pause_menu_option_index = 0;
-              /// @todo: extract this into a fn, same for the code below
-              game_state = main_menu;
-              winner = -1;
-              selected_player = 0;
-              reset_platform_positions();
-              reset_player_positions();
-              clear_board_positions();
-              update_board_positions();
-              update_board_players(player_positions, number_of_players_playing);
+              reset_game();
               break;
             }
             case 2: CloseWindow(); break;
@@ -132,15 +143,7 @@ s32 main() {
           break;
         }
         case game_over: {
-          pause_menu_option_index = 0;
-          game_state = main_menu;
-          winner = -1;
-          selected_player = 0;
-          reset_platform_positions();
-          reset_player_positions();
-          clear_board_positions();
-          update_board_positions();
-          update_board_players(player_positions, number_of_players_playing);
+          reset_game();
           break;
         }
       }
@@ -220,29 +223,11 @@ s32 main() {
     && (hovering_2_players || hovering_3_players || hovering_4_players)) {
       PlaySound(select_sfx);
       if(hovering_2_players) {
-        menu_option_2_position = menu_option_2_position_default;
-        hovering_2_players = false;
-        menu_option_index = 0;
-        scale_2 = 1;
-        number_of_players_playing = 2;
-        game_state = ai_menu;
-        transition_timeout = total_transition_timeout;
+        select_option2();
       } else if(hovering_3_players) {
-        menu_option_3_position = menu_option_3_position_default;
-        hovering_3_players = false;
-        menu_option_index = 1;
-        scale_3 = 1;
-        number_of_players_playing = 3;
-        game_state = ai_menu;
-        transition_timeout = total_transition_timeout;
+        select_option3();
       } else if(hovering_4_players) {
-        menu_option_4_position = menu_option_4_position_default;
-        hovering_4_players = false;
-        menu_option_index = 2;
-        scale_4 = 1;
-        number_of_players_playing = 4;
-        game_state = ai_menu;
-        transition_timeout = total_transition_timeout;
+        select_option4();
       }
     }
 
@@ -349,7 +334,6 @@ s32 main() {
     }
 
     if(selected_platform != -1) {
-      /// @todo: this is shared between players, need to separate!!!
       f32 animation_dt = ease_in_out_quart(animation_current_time / animation_duration);
 
       if(!FloatEquals(platform_final_position.x, -1)) {
@@ -370,7 +354,6 @@ s32 main() {
           selected_platform = -1;
           platform_final_position = {-1,-1};
 
-          /// @todo: simplify this, could set to false when select the platform and then set to true here, with the new position
           clear_board_positions();
           update_board_positions();
           update_board_players(player_positions, number_of_players_playing);
@@ -397,7 +380,6 @@ s32 main() {
           selected_platform = -1;
           platform_final_position = {-1,-1};
 
-          /// @todo: simplify this, could set to false when select the platform and then set to true here, with the new position
           clear_board_positions();
           update_board_positions();
           update_board_players(player_positions, number_of_players_playing);
@@ -410,39 +392,24 @@ s32 main() {
       animation_current_time = 0;
     }
 
-    time += dt * bg_movement_speed;
-    SetShaderValue(bg_color_fs, time_location_shader, &time, SHADER_UNIFORM_FLOAT);
+    update_shader(dt);
 
+    // MARK: RENDER
     BeginDrawing();
     ClearBackground(BLACK);
     draw_bg();
 
     if(game_state == playing || game_state == game_over || game_state == paused) {
-      // draw_text(TextFormat("Player turn %d", selected_player + 1), {5, 5}, GOLD);
-      draw_texture(board_texture, board_position, board_texture_scale);
-      for(auto platform_position : platform_positions) {
-        Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, platform_position);
-        draw_texture(platform_texture, screen_position, board_texture_scale);
-      }
+      draw_board();
+      draw_platforms();
 
       if(selected_platform != -1) {
-        Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, platform_positions[selected_platform]);
-        f32 platform_frame_texture_scale = 1.5;
-        draw_texture(platform_frame_texture, screen_position, platform_frame_texture_scale);
+        draw_platform_frame();
       }
 
-      u8 player_index = 0;
-      for(u8 i = 0; i < number_of_players_playing; i++) {
-        Vector2 player_position_screen = convert_board_position_to_screen_position(board_top_left + player_offset, player_positions[i]);
-        if(selected_player == i) BeginShaderMode(player_outline);
-        DrawTextureV(player_textures[player_index++], player_position_screen, WHITE);
-        if(selected_player == i) EndShaderMode();
-      }
+      draw_players(number_of_players_playing);
     } else if(game_state == main_menu || 0 < transition_timeout) {
-      Vector2 text_size = measure_text_title(game_title);
-      Vector2 text_position = {screen_center.x - text_size.x/2, text_size.y};
-      draw_text_title(game_title, text_position + 6, BLACK);
-      draw_text_title(game_title, text_position, GOLD);
+      draw_game_title();
       draw_menu_options(dt);
     } else if(game_state == ai_menu && FloatEquals(transition_timeout, 0)) {
       draw_ai_menu();
@@ -453,17 +420,7 @@ s32 main() {
     }
 
     if(winner != -1) {
-      const char* text = TextFormat("Congrats player %d!", winner + 1);
-      Vector2 text_size = measure_text(text);
-      Vector2 text_position = {screen_center.x - text_size.x/2, screen_center.y};
-      draw_text(text, text_position + 3, BLACK);
-      Color player_color = ORANGE;
-      switch(winner) {
-        case 1: player_color = GREEN;  break;
-        case 2: player_color = BLUE;   break;
-        case 3: player_color = PURPLE; break;
-      }
-      draw_text(text, text_position, player_color);
+      draw_winner_text();
     }
 
     EndDrawing();
