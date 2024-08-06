@@ -29,7 +29,7 @@ enum Game_State {
   game_over,
 };
 
-// MARK: main
+// MARK: MAIN
 s32 main() {
   init_screen();
   init_font_title();
@@ -45,13 +45,10 @@ s32 main() {
   Game_State game_state = main_menu;
   u8 number_of_players_playing = 4;
 
-  f32 animation_current_time = 0;
-  f32 animation_duration = 1;
-
   f32 total_transition_timeout = 0.3f;
   f32 transition_timeout = 0;
 
-  // MARK: GAME LOOP
+  // MARK: LOOP
   while (!WindowShouldClose()) {
     f32 dt = GetFrameTime();
 
@@ -135,7 +132,7 @@ s32 main() {
           break;
         }
         case game_over: {
-          // pause_menu_option_index = 0;
+          pause_menu_option_index = 0;
           game_state = main_menu;
           winner = -1;
           selected_player = 0;
@@ -150,20 +147,8 @@ s32 main() {
     }
 
     if(IsKeyPressed(KEY_ENTER)) {
-      switch(game_state) {
-        case playing: {
-          game_state = paused;
-          break;
-        }
-        case paused: {
-          game_state = playing;
-          break;
-        }
-        case main_menu:
-        case ai_menu:
-        case game_over:
-          break;
-      }
+      if(game_state == playing)     game_state = paused;
+      else if(game_state == paused) game_state = playing;
     }
 
     if(IsKeyPressed(KEY_A) && game_state == ai_menu) {
@@ -227,8 +212,8 @@ s32 main() {
     }
 
     Vector2 mouse_position = GetMousePosition();
-    check_mouse_collision_with_arrows(mouse_position);
     check_mouse_collision_with_menu_options(mouse_position, dt);
+    check_mouse_collision_with_arrows(mouse_position);
 
     if(IsMouseButtonPressed(0)
     && game_state == main_menu
@@ -357,7 +342,7 @@ s32 main() {
       }
     }
 
-    // MARK: Game Update
+    // MARK: UPDATE
     transition_timeout -= dt;
     if(transition_timeout < 0) {
       transition_timeout = 0;
@@ -430,17 +415,7 @@ s32 main() {
 
     BeginDrawing();
     ClearBackground(BLACK);
-
-    u64 bg_column_chunk = (u64)screen_width  / (u64)bg_texture.width;
-    u64 bg_row_chunk    = (u64)screen_height / (u64)bg_texture.height;
-
-    BeginShaderMode(bg_color_fs);
-    for(u64 i = 0; i < bg_column_chunk; i++) {
-      for(u64 j = 0; j <= bg_row_chunk; j++) {
-        DrawTextureV(bg_texture, {(f32)i*bg_texture.width,(f32)j*bg_texture.height}, palette[palette_index]);
-      }
-    }
-    EndShaderMode();
+    draw_bg();
 
     if(game_state == playing || game_state == game_over || game_state == paused) {
       // draw_text(TextFormat("Player turn %d", selected_player + 1), {5, 5}, GOLD);
@@ -448,10 +423,6 @@ s32 main() {
       for(auto platform_position : platform_positions) {
         Vector2 screen_position = convert_board_position_to_screen_position(board_top_left, platform_position);
         draw_texture(platform_texture, screen_position, board_texture_scale);
-
-        // if(board[cast_u8(platform_position.y)][cast_u8(platform_position.x)]) {
-        //   DrawCircleV(screen_position, 7, MAGENTA);
-        // }
       }
 
       if(selected_platform != -1) {
@@ -481,24 +452,24 @@ s32 main() {
       draw_pause_menu();
     }
 
-    // u8 y = 0;
-    // for(auto &row : board) {
-    //   u8 x = 0;
-    //   for(auto column : row) {
-    //     Vector2 center = convert_board_position_to_screen_position(board_top_left, (Vector2){(f32)0.5+(f32)1*x,(f32)0.5+y*1});
-    //     if(column & PLATFORM) {
-    //       DrawCircleV(center, 15, LIME);
-    //     }
-    //     if(column & PLAYER) {
-    //       DrawCircleV(center, 10, GOLD);
-    //     }
-    //     if(column == false) {
-    //       DrawCircleV(center, 15, VIOLET);
-    //     }
-    //     x++;
-    //   }
-    //   y++;
-    // }
+    f32 y = 0;
+    for(auto &row : board) {
+      f32 x = 0;
+      for(auto column : row) {
+        Vector2 center = convert_board_position_to_screen_position(board_top_left, (Vector2){x,y} + 0.5f);
+        if(column & PLATFORM) {
+          DrawCircleV(center, 15, LIME);
+        }
+        if(column & PLAYER) {
+          DrawCircleV(center, 10, GOLD);
+        }
+        if(column == false) {
+          DrawCircleV(center, 15, VIOLET);
+        }
+        x++;
+      }
+      y++;
+    }
 
     if(winner != -1) {
       const char* text = TextFormat("Congrats player %d!", winner + 1);

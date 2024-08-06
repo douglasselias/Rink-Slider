@@ -41,6 +41,9 @@ Texture2D platform_texture;
 Texture2D platform_frame_texture;
 u8 move_distance;
 
+f32 animation_current_time = 0;
+f32 animation_duration = 1;
+
 void reset_platform_positions() {
   for(u8 i = 0; i < 12; i++) {
     platform_positions[i] = initial_platform_positions[i];
