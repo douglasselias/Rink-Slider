@@ -106,7 +106,7 @@ s32 main() {
   f32 texture_size_value[2] = { (f32)player_textures[0].width, (f32)player_textures[0].height };
   SetShaderValue(player_outline, texture_size_location, texture_size_value, SHADER_UNIFORM_VEC2);
 
-  f32 total_transition_timeout = 0.3;
+  f32 total_transition_timeout = 0.3f;
   f32 transition_timeout = 0;
 
   // MARK: GAME LOOP
