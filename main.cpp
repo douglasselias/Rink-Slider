@@ -452,25 +452,6 @@ s32 main() {
       draw_pause_menu();
     }
 
-    f32 y = 0;
-    for(auto &row : board) {
-      f32 x = 0;
-      for(auto column : row) {
-        Vector2 center = convert_board_position_to_screen_position(board_top_left, (Vector2){x,y} + 0.5f);
-        if(column & PLATFORM) {
-          DrawCircleV(center, 15, LIME);
-        }
-        if(column & PLAYER) {
-          DrawCircleV(center, 10, GOLD);
-        }
-        if(column == false) {
-          DrawCircleV(center, 15, VIOLET);
-        }
-        x++;
-      }
-      y++;
-    }
-
     if(winner != -1) {
       const char* text = TextFormat("Congrats player %d!", winner + 1);
       Vector2 text_size = measure_text(text);
