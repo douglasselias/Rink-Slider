@@ -72,6 +72,66 @@ void select_option4() {
   transition_timeout = total_transition_timeout;
 }
 
+void select_next_player() {
+  selected_player = (selected_player + 1) % number_of_players_playing;
+}
+
+bool player_can_move(Vector2 p) {
+  bool can_move = false;
+  u8 x = cast_u8(p.x);
+  u8 y = cast_u8(p.y);
+
+  if(0 < x - 1 && !(board[y][x - 1] & PLAYER)) can_move = true;
+  if(x + 1 < 7 && !(board[y][x + 1] & PLAYER)) can_move = true;
+  if(0 < y - 1 && !(board[y - 1][x] & PLAYER)) can_move = true;
+  if(y + 1 < 7 && !(board[y + 1][x] & PLAYER)) can_move = true;
+
+  return can_move;
+}
+
+enum Directions {
+  NORTH = 1,
+  SOUTH = 2,
+  WEST  = 4,
+  EAST  = 8,
+};
+
+u8 player_is_trapped(Vector2 p) {
+  u8 is_trapped = 0;
+  u8 x = cast_u8(p.x);
+  u8 y = cast_u8(p.y);
+
+  if(x - 1 < 0 || board[y][x - 1] & PLAYER) {
+    is_trapped |= WEST;
+  } else if(board[y][x - 1] & PLATFORM) {
+    is_trapped |= player_can_move({(f32)(x - 1), (f32)y}) ? 0 : WEST;
+  }
+
+  if(6 < x + 1 || board[y][x + 1] & PLAYER) {
+    is_trapped |= EAST;
+  } else if(board[y][x + 1] & PLATFORM) {
+    is_trapped |= player_can_move({(f32)(x + 1), (f32)y}) ? 0 : EAST;
+  }
+
+  if(y - 1 < 0 || board[y - 1][x] & PLAYER) {
+    is_trapped |= NORTH;
+  } else if(board[y - 1][x] & PLATFORM) {
+    is_trapped |= player_can_move({(f32)x, (f32)(y - 1)}) ? 0 : NORTH;
+  }
+
+  if(6 < y + 1 || board[y + 1][x] & PLAYER) {
+    is_trapped |= SOUTH;
+  } else if(board[y + 1][x] & PLATFORM) {
+    is_trapped |= player_can_move({(f32)x, (f32)(y + 1)}) ? 0 : SOUTH;
+  }
+
+  return is_trapped;
+}
+
+bool is_impossible_to_move() {
+  Vector2 p = player_positions[selected_player];
+  return player_is_trapped(p) == 15;
+}
 
 s32 main() {
   init_screen();
@@ -337,12 +397,12 @@ s32 main() {
       f32 animation_dt = ease_in_out_quart(animation_current_time / animation_duration);
 
       if(!FloatEquals(platform_final_position.x, -1)) {
-        f32 x = Lerp(player_positions[selected_player].x, platform_final_position.x, animation_dt);
-        player_positions[selected_player].x     = x;
-        platform_positions[selected_platform].x = x;
+        f32 lerped_x = Lerp(player_positions[selected_player].x, platform_final_position.x, animation_dt);
+        player_positions[selected_player].x     = lerped_x;
+        platform_positions[selected_platform].x = lerped_x;
 
         if(FloatEquals(player_positions[selected_player].x, platform_final_position.x)) {
-          platform_positions[selected_platform].x = cast_u8(x);
+          platform_positions[selected_platform].x = cast_u8(lerped_x);
           Vector2 platform_position = platform_positions[selected_platform];
           if(cast_u8(platform_position.x) == 3
           && cast_u8(platform_position.y) == 3) {
@@ -350,25 +410,27 @@ s32 main() {
             game_state = game_over;
             PlaySound(win_sfx);
           }
-          selected_player = (selected_player + 1) % number_of_players_playing;
+          select_next_player();
           selected_platform = -1;
           platform_final_position = {-1,-1};
 
           clear_board_positions();
           update_board_positions();
           update_board_players(player_positions, number_of_players_playing);
+
+          if(is_impossible_to_move()) select_next_player();
         }
 
         animation_current_time += dt;
       }
 
       if(!FloatEquals(platform_final_position.y, -1)) {
-        f32 y = Lerp(player_positions[selected_player].y, platform_final_position.y, animation_dt);
-        player_positions[selected_player].y     = y;
-        platform_positions[selected_platform].y = y;
+        f32 lerped_y = Lerp(player_positions[selected_player].y, platform_final_position.y, animation_dt);
+        player_positions[selected_player].y     = lerped_y;
+        platform_positions[selected_platform].y = lerped_y;
 
         if(FloatEquals(player_positions[selected_player].y, platform_final_position.y)) {
-          platform_positions[selected_platform].y = cast_u8(y);
+          platform_positions[selected_platform].y = cast_u8(lerped_y);
           Vector2 platform_position = platform_positions[selected_platform];
           if(cast_u8(platform_position.x) == 3
           && cast_u8(platform_position.y) == 3) {
@@ -376,13 +438,15 @@ s32 main() {
             game_state = game_over;
             PlaySound(win_sfx);
           }
-          selected_player = (selected_player + 1) % number_of_players_playing;
+          select_next_player();
           selected_platform = -1;
           platform_final_position = {-1,-1};
 
           clear_board_positions();
           update_board_positions();
           update_board_players(player_positions, number_of_players_playing);
+
+          if(is_impossible_to_move()) select_next_player();
         }
 
         animation_current_time += dt;

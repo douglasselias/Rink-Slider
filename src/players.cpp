@@ -10,6 +10,30 @@ Vector2 initial_positions[number_of_players] = {
   {0,6},
 };
 
+// Corner Trap
+// Vector2 initial_positions[number_of_players] = {
+//   // Top left
+//   {0,0},
+//   // Bottom right
+//   {6,6},
+//   // Top right
+//   {1,1},
+//   // Bottom left
+//   {0,6},
+// };
+
+// Middle Trap
+// Vector2 initial_positions[number_of_players] = {
+//   // Top left
+//   {0,0},
+//   // Bottom right
+//   {0,6},
+//   // Top right
+//   {2,3},
+//   // Bottom left
+//   {0,3},
+// };
+
 Vector2 player_positions[number_of_players] = {};
 s8 winner = -1;
 u8 selected_player = 0;

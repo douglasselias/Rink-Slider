@@ -6,26 +6,116 @@ u8 board[7][7] = {};
 Vector2 initial_platform_positions[12] = {
   // Top left
   {0,0},
-  // {1,0},
-  // {0,1},
+  {1,0},
+  {0,1},
 
-  {4,0},
-  {3,4},
-
-  // {1,1},
   // Top right
   {6,0},
   {5,0},
   {6,1},
+
   // Bottom left
   {0,6},
   {0,5},
   {1,6},
+
   // Bottom right
   {6,6},
   {5,6},
   {6,5},
 };
+
+// Triple diagonal
+// Vector2 initial_platform_positions[12] = {
+//   // Top left
+//   {0,0},
+//   {3,3},
+//   {3,3},
+
+//   // Top right
+//   {1,1},
+//   {3,3},
+//   {3,3},
+
+//   // Bottom left
+//   {0,6},
+//   {0,5},
+//   {1,6},
+
+//   // Bottom right
+//   {6,6},
+//   {3,3},
+//   {3,3},
+// };
+
+// Double Diagonal
+// Vector2 initial_platform_positions[12] = {
+//   // Top left
+//   {0,0},
+//   {3,3},
+//   {3,3},
+
+//   // Top right
+//   {1,1},
+//   {3,3},
+//   {3,3},
+
+//   // Bottom left
+//   {0,6},
+//   {3,3},
+//   {3,3},
+
+//   // Bottom right
+//   {6,6},
+//   {3,3},
+//   {3,3},
+// };
+
+// Skewed position
+// Vector2 initial_platform_positions[12] = {
+//   // Top left
+//   {0,0},
+//   {3,3},
+//   {3,3},
+
+//   // Top right
+//   {1,1},
+//   {3,3},
+//   {3,3},
+
+//   // Bottom left
+//   {0,6},
+//   {1,6},
+//   {3,3},
+
+//   // Bottom right
+//   {6,6},
+//   {3,3},
+//   {3,3},
+// };
+
+// Middle trap
+// Vector2 initial_platform_positions[12] = {
+//   // Top left
+//   {0,0},
+//   {3,3},
+//   {3,3},
+
+//   // Top right
+//   {2,3},
+//   {3,3},
+//   {3,3},
+
+//   // Bottom left
+//   {0,3},
+//   {1,6},
+//   {3,3},
+
+//   // Bottom right
+//   {0,6},
+//   {3,3},
+//   {3,3},
+// };
 
 Vector2 platform_positions[12] = {};
 Vector2 platform_final_position = {-1,-1};
