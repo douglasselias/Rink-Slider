@@ -16,6 +16,6 @@ void init_sfx() {
   SetSoundVolume(select_platform_sfx, 0.5);
 
   move_sfx = LoadSound("sfx/select.ogg");
-  move_player_sfx = LoadSound("sfx/drop_004.ogg");
+  move_player_sfx = LoadSound("sfx/move_player.ogg");
   select_sfx = LoadSound("sfx/confirmation.ogg");
 }
