@@ -497,8 +497,17 @@ s32 main() {
   /// @todo: not really necessary
   UnloadFont(font);
   UnloadFont(font_title);
-
+  #if BUNDLE
+  UnloadMusicStream(bgm);
+  UnloadSound(win_sfx);
+  UnloadSound(move_sfx);
+  UnloadSound(select_sfx);
+  UnloadSound(sliding_sfx);
+  UnloadSound(move_player_sfx);
+  UnloadSound(select_platform_sfx);
+  #else
   UnloadShader(player_outline);
+  UnloadShader(bg_color_fs);
 
   for(auto player_texture : player_textures) {
     UnloadTexture(player_texture);
@@ -509,15 +518,7 @@ s32 main() {
   UnloadTexture(platform_frame_texture);
   UnloadTexture(arrow_left);
   UnloadTexture(arrow_right);
-
-  UnloadSound(win_sfx);
-  UnloadSound(move_sfx);
-  UnloadSound(select_sfx);
-  UnloadSound(sliding_sfx);
-  UnloadSound(move_player_sfx);
-  UnloadSound(select_platform_sfx);
-
-  UnloadMusicStream(bgm);
+  #endif
 
   CloseWindow();
   return 0;

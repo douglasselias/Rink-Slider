@@ -66,7 +66,11 @@ void init_players() {
 
   reset_player_positions();
 
+  #if BUNDLE
+  player_outline = LoadShaderFromMemory(0, player_outline_shader);
+  #else
   player_outline = LoadShader(0, "shaders/player_outline.fs");
+  #endif
   s32 texture_size_location = GetShaderLocation(player_outline, "textureSize");
   f32 texture_size_value[2] = { (f32)player_textures[0].width, (f32)player_textures[0].height };
   SetShaderValue(player_outline, texture_size_location, texture_size_value, SHADER_UNIFORM_VEC2);

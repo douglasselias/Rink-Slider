@@ -12,7 +12,11 @@ void init_bg() {
   SetTextureWrap(bg_texture, TEXTURE_WRAP_REPEAT);
   SetTextureFilter(bg_texture, TEXTURE_FILTER_TRILINEAR);
 
+  #if BUNDLE
+  bg_color_fs = LoadShaderFromMemory(bg_move_shader, bg_color_shader);
+  #else
   bg_color_fs = LoadShader("shaders/bg_move.vs", "shaders/bg_color.fs");
+  #endif
   time_location_shader = GetShaderLocation(bg_color_fs, "time");
 }
 
