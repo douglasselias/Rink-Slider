@@ -6,7 +6,10 @@ perf_debug := "-fopt-info-vec-optimized -fprofile-generate | -fprofile-use"
 windows_flags := "-std=c++11 -Wall -Wshadow -fno-exceptions -fno-rtti -O0 -g3 -o"
 
 just:
-  mkdir -p build && clear && clang++ {{flags}} ./build/main main.cpp ./vendor/libraylib.a && ./build/main
+  mkdir -p build && clear && clang++ -DBUNDLE {{flags}} ./build/main main.cpp ./vendor/libraylib.a && ./build/main
+
+bundle:
+	mkdir -p bundle && clear && clang++ {{flags}} ./build/bundler bundler.cpp ./vendor/libraylib.a && ./build/bundler
 
 debug:
   gf2 ./build/main

@@ -7,6 +7,10 @@
 #include "std/macros.cpp"
 #include "std/vector_overload.cpp"
 
+#if BUNDLE
+#include "bundle/bundle.cpp"
+#endif
+
 #include "src/screen.cpp"
 #include "src/font.cpp"
 #include "src/board.cpp"

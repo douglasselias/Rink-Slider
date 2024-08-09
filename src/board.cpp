@@ -149,7 +149,11 @@ void update_board_positions() {
 
 void init_board() {
   platform_frame_texture = LoadTexture("gfx/platform_frame.png");
+  #if BUNDLE
+  board_texture = load_texture_board();
+  #else
   board_texture = LoadTexture("gfx/board.png");
+  #endif
   board_position = {
     screen_center.x - (f32)board_texture.width,
     screen_center.y - (f32)board_texture.height,

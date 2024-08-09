@@ -4,6 +4,10 @@ void log(const char* text) {
   TraceLog(LOG_WARNING, text);
 }
 
+void log(const char* text, const char* text_value) {
+  TraceLog(LOG_WARNING, TextFormat("%s: %s", text, text_value));
+}
+
 void log(const char* name, Vector2 vector) {
   TraceLog(LOG_WARNING, TextFormat("%s: (%.3f, %.3f)", name, (f64)vector.x, (f64)vector.y));
 }
