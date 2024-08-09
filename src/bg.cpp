@@ -3,7 +3,11 @@ Shader bg_color_fs;
 s32 time_location_shader;
 
 void init_bg() {
+  #if BUNDLE
+  bg_texture = load_texture_bg();
+  #else
   bg_texture = LoadTexture("gfx/bg.png");
+  #endif
   GenTextureMipmaps(&bg_texture);
   SetTextureWrap(bg_texture, TEXTURE_WRAP_REPEAT);
   SetTextureFilter(bg_texture, TEXTURE_FILTER_TRILINEAR);

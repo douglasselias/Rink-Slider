@@ -51,10 +51,17 @@ void reset_player_positions() {
 }
 
 void init_players() {
-  u8 player_color_index = 0;
-  for(auto &player_texture : player_textures) {
-    player_texture = LoadTexture(TextFormat("gfx/player_%s.png", player_colors[player_color_index++]));
-  }
+    #if BUNDLE
+    player_textures[0] = load_texture_player_orange();
+    player_textures[1] = load_texture_player_green();
+    player_textures[2] = load_texture_player_blue();
+    player_textures[3] = load_texture_player_purple();
+    #else
+    u8 player_color_index = 0;
+    for(auto &player_texture : player_textures) {
+      player_texture = LoadTexture(TextFormat("gfx/player_%s.png", player_colors[player_color_index++]));
+    }
+    #endif
   player_offset = {(f32)player_textures[0].width / 4, 0};
 
   reset_player_positions();

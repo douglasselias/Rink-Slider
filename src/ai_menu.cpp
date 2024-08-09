@@ -8,8 +8,13 @@ bool arrow_left_colliding = false;
 bool arrow_right_colliding = false;
 
 void init_ai_menu() {
+  #if BUNDLE
+  arrow_left  = load_texture_arrow_left();
+  arrow_right = load_texture_arrow_right();
+  #else
   arrow_left  = LoadTexture("gfx/arrow_left.png");
   arrow_right = LoadTexture("gfx/arrow_right.png");
+  #endif
   arrow_left_position  = screen_center - (Vector2){(f32)100 + arrow_left.width, 0};
   arrow_right_position = screen_center + (Vector2){100, 0};
 }

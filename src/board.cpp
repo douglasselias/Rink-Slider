@@ -148,18 +148,20 @@ void update_board_positions() {
 }
 
 void init_board() {
-  platform_frame_texture = LoadTexture("gfx/platform_frame.png");
   #if BUNDLE
   board_texture = load_texture_board();
+  platform_frame_texture = load_texture_platform_frame();
+  platform_texture = load_texture_platform();
   #else
   board_texture = LoadTexture("gfx/board.png");
+  platform_frame_texture = LoadTexture("gfx/platform_frame.png");
+  platform_texture = LoadTexture("gfx/platform.png");
   #endif
   board_position = {
     screen_center.x - (f32)board_texture.width,
     screen_center.y - (f32)board_texture.height,
   };
   board_top_left = board_position + board_border_thickness * board_texture_scale;
-  platform_texture = LoadTexture("gfx/platform.png");
   move_distance = cast_u8(platform_texture.width) * board_texture_scale;
 
   reset_platform_positions();

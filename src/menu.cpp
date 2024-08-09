@@ -19,11 +19,18 @@ Vector2 menu_option_4_position = {};
 s8 menu_option_index = 0;
 
 void init_menu_options() {
+  #if BUNDLE
+  menu_option_2_players = load_texture_players_2();
+  menu_option_3_players = load_texture_players_3();
+  menu_option_4_players = load_texture_players_4();
+  #else
   menu_option_2_players = LoadTexture("gfx/players_2.png");
-  SetTextureFilter(menu_option_2_players, TEXTURE_FILTER_BILINEAR);
   menu_option_3_players = LoadTexture("gfx/players_3.png");
-  SetTextureFilter(menu_option_3_players, TEXTURE_FILTER_BILINEAR);
   menu_option_4_players = LoadTexture("gfx/players_4.png");
+  #endif
+
+  SetTextureFilter(menu_option_2_players, TEXTURE_FILTER_BILINEAR);
+  SetTextureFilter(menu_option_3_players, TEXTURE_FILTER_BILINEAR);
   SetTextureFilter(menu_option_4_players, TEXTURE_FILTER_BILINEAR);
 
   s32 menu_gap = 30;
