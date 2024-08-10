@@ -497,15 +497,16 @@ s32 main() {
   /// @todo: not really necessary
   UnloadFont(font);
   UnloadFont(font_title);
-  #if BUNDLE
   UnloadMusicStream(bgm);
+  #if BUNDLE
+  #else
   UnloadSound(win_sfx);
   UnloadSound(move_sfx);
   UnloadSound(select_sfx);
   UnloadSound(sliding_sfx);
   UnloadSound(move_player_sfx);
   UnloadSound(select_platform_sfx);
-  #else
+
   UnloadShader(player_outline);
   UnloadShader(bg_color_fs);
 

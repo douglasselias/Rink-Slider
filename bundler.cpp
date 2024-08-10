@@ -15,13 +15,23 @@ s32 main() {
   InitWindow(100, 100, "Bundler");
 
   fprintf(bundle_file,
-    "#define Img(name) \\\n"
+    "#define ImageStruct(name) \\\n"
     "\tImage name##_img = { \\\n"
       "\t\t.data    = name##_DATA, \\\n"
       "\t\t.width   = name##_WIDTH, \\\n"
       "\t\t.height  = name##_HEIGHT, \\\n"
       "\t\t.mipmaps = 1, \\\n"
       "\t\t.format  = name##_FORMAT, \\\n"
+    "\t}\n\n");
+
+  fprintf(bundle_file,
+    "#define WaveStruct(name) \\\n"
+    "\tWave name##_wave = { \\\n"
+      "\t\t.frameCount = name##_FRAME_COUNT, \\\n"
+      "\t\t.sampleRate = name##_SAMPLE_RATE, \\\n"
+      "\t\t.sampleSize = name##_SAMPLE_SIZE, \\\n"
+      "\t\t.channels   = name##_CHANNELS, \\\n"
+      "\t\t.data       = name##_DATA, \\\n"
     "\t}\n\n");
 
   FilePathList file_path_list_gfx = LoadDirectoryFiles("gfx");
@@ -37,7 +47,7 @@ s32 main() {
 
     const char* file_name_wo_ext = GetFileNameWithoutExt(file_export);
     fprintf(bundle_file, "#include \"%s\"\n", file_export);
-    fprintf(bundle_file, "Img(%s);\n", TextToUpper(file_name_wo_ext));
+    fprintf(bundle_file, "ImageStruct(%s);\n", TextToUpper(file_name_wo_ext));
     fprintf(bundle_file, "Texture2D load_texture_%s() { return LoadTextureFromImage(%s_img); }\n\n", file_name_wo_ext, TextToUpper(file_name_wo_ext));
   }
   UnloadDirectoryFiles(file_path_list_gfx);
@@ -72,7 +82,6 @@ s32 main() {
   for(u8 i = 0; i < file_path_list_shaders.count; i++) {
     char* file_path = file_path_list_shaders.paths[i];
     const char* file_name = GetFileNameWithoutExt(file_path);
-    const char* file_export = TextFormat("%s.cpp", file_name);
 
     char* shader_text = LoadFileText(file_path);
     fprintf(bundle_file, "const char* %s_shader = ", file_name);
@@ -81,8 +90,28 @@ s32 main() {
     }
     fprintf(bundle_file, ";\n");
     UnloadFileText(shader_text);
+    log("------------------------");
   }
   UnloadDirectoryFiles(file_path_list_shaders);
+
+  FilePathList file_path_list_sfx = LoadDirectoryFiles("sfx");
+  for(u8 i = 0; i < file_path_list_sfx.count; i++) {
+    char* file_path = file_path_list_sfx.paths[i];
+    const char* file_name = GetFileNameWithoutExt(file_path);
+    if(file_name[0] == '8') continue; // Skipping music file
+    const char* file_export = TextFormat("%s.cpp", file_name);
+    Wave wave_file = LoadWave(file_path);
+    ExportWaveAsCode(wave_file, TextFormat("bundle/%s", file_export));
+    UnloadWave(wave_file);
+    log("------------------------");
+
+    const char* file_name_wo_ext = GetFileNameWithoutExt(file_export);
+    fprintf(bundle_file, "#include \"%s\"\n", file_export);
+    fprintf(bundle_file, "WaveStruct(%s);\n", TextToUpper(file_name_wo_ext));
+    fprintf(bundle_file, "Sound load_sound_%s() { return LoadSoundFromWave(%s_wave); }\n\n", file_name_wo_ext, TextToUpper(file_name_wo_ext));
+  }
+  UnloadDirectoryFiles(file_path_list_sfx);
+
 
   fclose(bundle_file);
   CloseWindow();

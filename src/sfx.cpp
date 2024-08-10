@@ -6,16 +6,24 @@ Sound sliding_sfx;
 Sound select_platform_sfx;
 
 void init_sfx() {
-  win_sfx = LoadSound("sfx/win.wav");
-  SetSoundVolume(win_sfx, 2.0);
-
-  sliding_sfx = LoadSound("sfx/sliding_platform.ogg");
-  SetSoundVolume(sliding_sfx, 1.4f);
-
-  select_platform_sfx = LoadSound("sfx/select_platform.ogg");
-  SetSoundVolume(select_platform_sfx, 0.5);
-
+  #if BUNDLE
+  move_sfx = load_sound_select();
+  move_player_sfx = load_sound_move_player();
+  select_sfx = load_sound_confirmation();
+  win_sfx = load_sound_win();
+  sliding_sfx = load_sound_sliding_platform();
+  select_platform_sfx = load_sound_select_platform();
+  #else
   move_sfx = LoadSound("sfx/select.ogg");
   move_player_sfx = LoadSound("sfx/move_player.ogg");
   select_sfx = LoadSound("sfx/confirmation.ogg");
+  win_sfx = LoadSound("sfx/win.wav");
+  sliding_sfx = LoadSound("sfx/sliding_platform.ogg");
+  select_platform_sfx = LoadSound("sfx/select_platform.ogg");
+  #endif
+
+  SetSoundVolume(win_sfx, 2.0);
+  SetSoundVolume(sliding_sfx, 1.4f);
+  SetSoundVolume(select_platform_sfx, 0.5);
+
 }
