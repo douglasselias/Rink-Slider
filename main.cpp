@@ -54,7 +54,7 @@ void select_option2() {
   menu_option_index = 0;
   scale_2 = 1;
   number_of_players_playing = 2;
-  game_state = ai_menu;
+  game_state = playing;
   transition_timeout = total_transition_timeout;
 }
 
@@ -63,7 +63,7 @@ void select_option3() {
   hovering_3_players = false;
   scale_3 = 1;
   number_of_players_playing = 3;
-  game_state = ai_menu;
+  game_state = playing;
   transition_timeout = total_transition_timeout;
 }
 
@@ -72,7 +72,7 @@ void select_option4() {
   hovering_4_players = false;
   scale_4 = 1;
   number_of_players_playing = 4;
-  game_state = ai_menu;
+  game_state = playing;
   transition_timeout = total_transition_timeout;
 }
 
@@ -467,7 +467,7 @@ s32 main() {
     ClearBackground(BLACK);
     draw_bg();
 
-    if(game_state == playing || game_state == game_over || game_state == paused) {
+    if((game_state == playing || game_state == game_over || game_state == paused) && FloatEquals(transition_timeout, 0)) {
       draw_board();
       draw_platforms();
 
